@@ -2108,7 +2108,7 @@
   });
 
   const savedLang = localStorage.getItem("polyquest-lang");
-  if (savedLang && savedLang !== "pt") setLang(savedLang);
+  setLang(savedLang || "pt");
 
   // ── Smooth scroll ────────────────────────────────────────────────
   document.querySelectorAll('a[href^="#"]').forEach(a => {
