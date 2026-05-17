@@ -375,9 +375,7 @@ def main():
     translator = PolyQuest(full_config, _config_path())
     translator.register_hotkey()
 
-    # ── Abrir configurações na primeira execução ─────────────────
     from PyQt6.QtCore import QTimer
-    QTimer.singleShot(500, translator._open_settings)
 
     def _check_update():
         update = check_for_update()
@@ -395,7 +393,11 @@ def main():
             if box.clickedButton() == btn_dl and update.get("url"):
                 webbrowser.open(update["url"])
 
-    QTimer.singleShot(3000, _check_update)
+    def _startup():
+        _check_update()
+        translator._open_settings()
+
+    QTimer.singleShot(500, _startup)
 
     sys.exit(app.exec())
 
