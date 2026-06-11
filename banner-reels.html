@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>PolyQuest Banner - Reels/Stories</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+  .banner {
+    width: 1080px;
+    height: 1920px;
+    background: #0a0e18;
+    overflow: hidden;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Background effects */
+  .banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(155, 48, 255, 0.2) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 70%, rgba(0, 229, 255, 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 20% 50%, rgba(155, 48, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 50%, rgba(0, 229, 255, 0.08) 0%, transparent 40%);
+    z-index: 0;
+  }
+  .banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+  }
+
+  .banner-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 80px 60px;
+    gap: 32px;
+  }
+
+  .logo-img {
+    width: 220px;
+    height: auto;
+    filter: drop-shadow(0 0 40px rgba(155, 48, 255, 0.5));
+  }
+
+  .brand-name {
+    font-size: 64px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #00e5ff, #9b30ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 4px;
+  }
+
+  .divider {
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #9b30ff, transparent);
+  }
+
+  .discount-label {
+    font-size: 36px;
+    font-weight: 700;
+    color: #00e5ff;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+  }
+
+  .discount-badge {
+    background: linear-gradient(135deg, #9b30ff, #6c5ce7);
+    color: #fff;
+    font-size: 120px;
+    font-weight: 900;
+    padding: 20px 80px;
+    border-radius: 24px;
+    letter-spacing: -3px;
+    box-shadow: 0 0 80px rgba(155, 48, 255, 0.4), 0 8px 40px rgba(0,0,0,0.4);
+    line-height: 1.1;
+  }
+
+  .discount-sub {
+    font-size: 40px;
+    font-weight: 900;
+    color: #d8f0ff;
+    letter-spacing: 2px;
+  }
+
+  .coupon-box {
+    background: #111c30;
+    border: 2px solid rgba(0, 229, 255, 0.25);
+    border-radius: 16px;
+    padding: 24px 60px;
+    margin-top: 8px;
+  }
+
+  .coupon-label {
+    font-size: 22px;
+    color: #5a7a9a;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .coupon-code {
+    font-size: 56px;
+    font-weight: 900;
+    color: #00e5ff;
+    font-family: monospace;
+    letter-spacing: 8px;
+    text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+  }
+
+  .tagline {
+    font-size: 30px;
+    color: #5a7a9a;
+    max-width: 700px;
+    line-height: 1.5;
+    margin-top: 16px;
+  }
+
+  .tagline strong {
+    color: #d8f0ff;
+  }
+
+  .premium-tag {
+    background: rgba(155, 48, 255, 0.15);
+    border: 1px solid rgba(155, 48, 255, 0.3);
+    color: #9b30ff;
+    font-size: 24px;
+    font-weight: 800;
+    padding: 10px 32px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+
+  /* Corner accents */
+  .corner {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    z-index: 2;
+  }
+  .corner-tl { top: 30px; left: 30px; border-top: 2px solid rgba(0, 229, 255, 0.2); border-left: 2px solid rgba(0, 229, 255, 0.2); }
+  .corner-tr { top: 30px; right: 30px; border-top: 2px solid rgba(0, 229, 255, 0.2); border-right: 2px solid rgba(0, 229, 255, 0.2); }
+  .corner-bl { bottom: 30px; left: 30px; border-bottom: 2px solid rgba(155, 48, 255, 0.2); border-left: 2px solid rgba(155, 48, 255, 0.2); }
+  .corner-br { bottom: 30px; right: 30px; border-bottom: 2px solid rgba(155, 48, 255, 0.2); border-right: 2px solid rgba(155, 48, 255, 0.2); }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <div class="banner-content">
+    <img src="logo.png" alt="PolyQuest" class="logo-img">
+    <div class="brand-name">POLYQUEST</div>
+    <div class="premium-tag">Premium</div>
+
+    <div class="divider"></div>
+
+    <div class="discount-label">Desconto exclusivo</div>
+    <div class="discount-badge">30%</div>
+    <div class="discount-sub">DE DESCONTO</div>
+
+    <div class="coupon-box">
+      <div class="coupon-label">Use o cupom</div>
+      <div class="coupon-code">SEUCUPOM</div>
+    </div>
+
+    <div class="tagline">Traduza <strong>qualquer jogo</strong> em tempo real com OCR inteligente</div>
+  </div>
+</div>
+
+</body>
+</html>

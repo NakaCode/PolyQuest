@@ -1,0 +1,8 @@
+mss
+Pillow
+deep-translator
+keyboard
+PyQt6
+winsdk
+opencv-python-headless
+pyinstaller

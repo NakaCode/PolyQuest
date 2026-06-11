@@ -1,0 +1,25 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ── PyInstaller (artefatos de build, ~280MB) ────────────
+build/
+dist/
+*.manifest
+# NB: PolyQuest.spec é fonte (config do build) e fica versionado.
+# NB: PolyQuest_Setup.exe na raiz fica versionado — o site o serve p/ download.
+
+# ── Supabase CLI (scratch local) ────────────────────────
+supabase/.temp/
+
+# ── Licença local / específica da máquina ───────────────
+.polyquest_license
+
+# ── Sistema operacional ─────────────────────────────────
+Thumbs.db
+desktop.ini
+.DS_Store

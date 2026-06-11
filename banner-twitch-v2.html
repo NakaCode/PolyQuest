@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>PolyQuest Banner - Twitch Card v2 (Amarelo)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+  .banner {
+    width: 340px;
+    height: 400px;
+    background: #0e0c06;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Background effects */
+  .banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(255, 200, 0, 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 80%, rgba(255, 165, 0, 0.08) 0%, transparent 60%);
+    z-index: 0;
+  }
+  .banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 200, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 200, 0, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    z-index: 0;
+  }
+
+  .banner-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 28px;
+    gap: 10px;
+  }
+
+  .qr-img {
+    width: 140px;
+    height: 140px;
+    border-radius: 10px;
+    filter: drop-shadow(0 0 20px rgba(255, 200, 0, 0.3));
+  }
+
+  .brand-name {
+    font-size: 18px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffc800, #ff9500);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+
+  .discount-badge {
+    background: linear-gradient(135deg, #ffc800, #e6a800);
+    color: #0e0c06;
+    font-size: 24px;
+    font-weight: 900;
+    padding: 6px 22px;
+    border-radius: 10px;
+    letter-spacing: -1px;
+    box-shadow: 0 0 25px rgba(255, 200, 0, 0.35), 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .discount-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffc800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .coupon-box {
+    background: #1a1606;
+    border: 1px solid rgba(255, 200, 0, 0.2);
+    border-radius: 6px;
+    padding: 6px 16px;
+  }
+
+  .coupon-label {
+    font-size: 9px;
+    color: #8a7a4a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1px;
+  }
+
+  .coupon-code {
+    font-size: 16px;
+    font-weight: 900;
+    color: #ffc800;
+    font-family: monospace;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(255, 200, 0, 0.2);
+  }
+
+  .tagline {
+    font-size: 10px;
+    color: #8a7a4a;
+    max-width: 260px;
+    line-height: 1.4;
+  }
+
+  /* Glow border */
+  .banner-border {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 200, 0, 0.25);
+    pointer-events: none;
+    z-index: 2;
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="banner-content">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://www.polyquest.store&bgcolor=0e0c06&color=ffc800&format=png" alt="QR Code - polyquest.store" class="qr-img">
+    <div class="brand-name">POLYQUEST</div>
+    <div class="discount-label">Desconto exclusivo</div>
+    <div class="discount-badge">20% OFF</div>
+    <div class="coupon-box">
+      <div class="coupon-label">Use o cupom</div>
+      <div class="coupon-code">SEUCUPOM</div>
+    </div>
+    <div class="tagline">Traduza qualquer jogo em tempo real</div>
+  </div>
+  <div class="banner-border"></div>
+</div>
+
+</body>
+</html>

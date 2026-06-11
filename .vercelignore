@@ -1,0 +1,30 @@
+# A Vercel faz deploy de TODO o repositório na raiz do site (polyquest.store).
+# Este arquivo impede que código-fonte do app e do backend fique público
+# em polyquest.store/src/..., /supabase/..., etc.
+#
+# Mantidos no deploy (site): index.html, admin.html, banner-*.html,
+# PolyQuest_Setup.exe (download), logo.png, icon*.ico.
+
+# Código do app desktop (Python)
+src/
+main.py
+*.py
+*.spec
+requirements.txt
+
+# Backend / infra (NÃO é servido pelo site; deploy via supabase CLI)
+supabase/
+discord-bot/
+
+# Build / empacotamento
+build/
+dist/
+*.iss
+*.ps1
+*.bat
+rebuild.py
+version_info.txt
+config.json
+
+# Backup antigo (não referenciado pelo site)
+index_v1_backup.html

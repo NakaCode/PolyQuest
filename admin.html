@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PolyQuest Admin</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0a0e18;color:#d8f0ff;min-height:100vh}
+
+    /* Login */
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .login-card{background:#0d1422;border:1px solid #1e2d48;border-radius:16px;padding:40px;max-width:400px;width:100%}
+    .login-card h1{font-size:20px;font-weight:800;color:#00e5ff;margin-bottom:4px}
+    .login-card .sub{color:#5a7a9a;font-size:13px;margin-bottom:24px}
+
+    /* Dashboard */
+    .dashboard{display:none;padding:24px}
+    .header{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto 24px;flex-wrap:wrap;gap:16px}
+    .header h1{font-size:20px;font-weight:800;color:#00e5ff}
+    .stats{display:flex;gap:24px}
+    .stat{text-align:center}
+    .stat-num{font-size:24px;font-weight:900;color:#d8f0ff}
+    .stat-label{font-size:11px;color:#5a7a9a;text-transform:uppercase;letter-spacing:.1em}
+
+    .panel{background:#0d1422;border:1px solid #1e2d48;border-radius:16px;padding:24px;max-width:1100px;margin:0 auto 24px}
+    .section-title{font-size:13px;font-weight:800;color:#00e5ff;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px}
+
+    label{font-size:11px;font-weight:700;color:#5a7a9a;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px}
+    input,select{background:#111c30;border:1px solid #1e2d48;color:#d8f0ff;border-radius:6px;padding:8px 12px;font-size:13px;outline:none;width:100%}
+    input:focus,select:focus{border-color:#00e5ff}
+
+    .btn{background:#9b30ff;color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+    .btn:hover{background:#7a18e0}
+    .btn-danger{background:#f38ba8;color:#1e1e2e}
+    .btn-danger:hover{background:#e06080}
+    .btn-sm{padding:4px 10px;font-size:11px;border-radius:4px}
+    .btn-ghost{background:#45475a;color:#cdd6f4}
+    .btn-ghost:hover{background:#585b70}
+
+    .gen-form{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+    .gen-form > div{flex:1;min-width:160px}
+    .gen-form > div:last-child{flex:0}
+
+    .msg{border-radius:8px;padding:10px 16px;font-size:13px;margin-bottom:20px;max-width:1100px;margin-left:auto;margin-right:auto}
+    .msg-success{background:rgba(52,211,153,.1);border:1px solid #34d399;color:#34d399}
+    .msg-error{background:rgba(248,113,113,.1);border:1px solid #f38ba8;color:#f38ba8}
+
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{text-align:left;color:#5a7a9a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:8px 12px;border-bottom:1px solid #1e2d48}
+    td{padding:10px 12px;border-bottom:1px solid #111c30;color:#cdd6f4}
+    tr:hover td{background:rgba(0,229,255,.02)}
+    .key-cell{font-family:monospace;font-weight:700;color:#00e5ff;font-size:13px}
+    .status-active{color:#34d399;font-weight:700}
+    .status-available{color:#f9e2af;font-weight:700}
+    .hwid-cell{color:#5a7a9a;font-size:11px}
+    .actions{display:flex;gap:4px}
+    .empty{text-align:center;color:#5a7a9a;padding:40px}
+    .table-wrap{overflow-x:auto}
+
+    .tabs{display:flex;gap:8px;max-width:1100px;margin:0 auto 24px}
+    .tab{background:#111c30;border:1px solid #1e2d48;color:#5a7a9a;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent}
+    .tab.active{color:#00e5ff;border-bottom-color:#00e5ff;background:#0d1422}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+
+    .coupon-active{color:#34d399;font-weight:700}
+    .coupon-inactive{color:#f38ba8;font-weight:700}
+    .coupon-code{font-family:monospace;font-weight:700;color:#9b30ff;font-size:13px;letter-spacing:1px}
+
+    .error-text{color:#f38ba8;font-size:13px;margin-top:8px;display:none}
+    .loading{opacity:.6;pointer-events:none}
+  </style>
+</head>
+<body>
+
+<!-- ── Login ──────────────────────────────────────────── -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-card">
+    <h1>PolyQuest Admin</h1>
+    <p class="sub">Painel de gerenciamento de licenças</p>
+    <p class="error-text" id="login-error"></p>
+    <label>Senha</label>
+    <input type="password" id="login-pw" autofocus>
+    <div style="height:16px"></div>
+    <button class="btn" style="width:100%;padding:12px" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- ── Dashboard ─────────────────────────────────────── -->
+<div class="dashboard" id="dashboard">
+  <div class="header">
+    <h1>PolyQuest Admin</h1>
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="st-total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat"><div class="stat-num" id="st-active" style="color:#34d399">0</div><div class="stat-label">Ativadas</div></div>
+      <div class="stat"><div class="stat-num" id="st-available" style="color:#f9e2af">0</div><div class="stat-label">Disponíveis</div></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('licenses')">Licenças</div>
+    <div class="tab" onclick="switchTab('coupons')">Cupons de Desconto</div>
+  </div>
+
+  <div id="msg-area"></div>
+
+  <!-- ── TAB: Licenças ─────────────────────────────────── -->
+  <div class="tab-content active" id="tab-licenses">
+
+  <div class="panel">
+    <div class="section-title">Gerar nova chave</div>
+    <div class="gen-form">
+      <div>
+        <label>Email / identificação</label>
+        <input type="text" id="gen-email" placeholder="parceiro@email.com">
+      </div>
+      <div>
+        <label>Nota (opcional)</label>
+        <input type="text" id="gen-nota" placeholder="Ex: Influenciador X">
+      </div>
+      <div style="min-width:100px;flex:0">
+        <label>Quantidade</label>
+        <select id="gen-qty">
+          <option value="1">1</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      <div style="padding-top:18px;flex:0">
+        <button class="btn" onclick="doGenerate()">Gerar chave(s)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-title">Todas as licenças</div>
+    <div class="table-wrap" id="table-area">
+      <div class="empty">Carregando...</div>
+    </div>
+  </div>
+
+  </div><!-- fim tab-licenses -->
+
+  <!-- ── TAB: Cupons ───────────────────────────────────── -->
+  <div class="tab-content" id="tab-coupons">
+
+  <div class="panel">
+    <div class="section-title">Criar novo cupom</div>
+    <div class="gen-form">
+      <div>
+        <label>Código do cupom</label>
+        <input type="text" id="cp-code" placeholder="Ex: GAMER10" style="text-transform:uppercase">
+      </div>
+      <div>
+        <label>Influenciador</label>
+        <input type="text" id="cp-influencer" placeholder="Nome do influenciador">
+      </div>
+      <div style="min-width:120px">
+        <label>Tipo de desconto</label>
+        <select id="cp-type">
+          <option value="percent">Percentual (%)</option>
+          <option value="fixed">Valor fixo (R$)</option>
+        </select>
+      </div>
+      <div style="min-width:100px">
+        <label>Valor</label>
+        <input type="number" id="cp-value" placeholder="10" min="0.01" step="0.01">
+      </div>
+      <div style="min-width:100px">
+        <label>Limite de usos</label>
+        <input type="number" id="cp-max" placeholder="Ilimitado" min="1">
+      </div>
+      <div style="min-width:160px">
+        <label>Expira em</label>
+        <input type="date" id="cp-expires">
+      </div>
+      <div style="padding-top:18px;flex:0">
+        <button class="btn" onclick="doCreateCoupon()">Criar cupom</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-title">Todos os cupons</div>
+    <div class="stats" style="margin-bottom:16px">
+      <div class="stat"><div class="stat-num" id="cp-total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat"><div class="stat-num" id="cp-active-count" style="color:#34d399">0</div><div class="stat-label">Ativos</div></div>
+      <div class="stat"><div class="stat-num" id="cp-total-uses" style="color:#9b30ff">0</div><div class="stat-label">Vendas via cupom</div></div>
+      <div class="stat"><div class="stat-num" id="cp-total-revenue" style="color:#f9e2af">R$0,00</div><div class="stat-label">Faturamento total</div></div>
+    </div>
+    <div class="table-wrap" id="coupon-table-area">
+      <div class="empty">Carregando...</div>
+    </div>
+  </div>
+
+  </div><!-- fim tab-coupons -->
+
+</div>
+
+<script>
+var API = 'https://mckcypgoimtjsxngkelh.supabase.co/functions/v1/admin-panel';
+var PW = '';
+
+function api(action, extra) {
+  return fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.assign({ action: action, password: PW }, extra || {}))
+  }).then(function(r) { return r.json(); });
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function showMsg(text, type) {
+  var area = document.getElementById('msg-area');
+  area.innerHTML = '<div class="msg msg-' + type + '">' + text + '</div>';
+  setTimeout(function() { area.innerHTML = ''; }, 6000);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.tab')[tab === 'licenses' ? 0 : 1].classList.add('active');
+  if (tab === 'coupons') refreshCoupons();
+}
+
+function doLogin() {
+  PW = document.getElementById('login-pw').value;
+  var errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  api('list').then(function(data) {
+    if (!data.ok) {
+      errEl.textContent = data.error || 'Senha incorreta.';
+      errEl.style.display = 'block';
+      PW = '';
+      return;
+    }
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    renderTable(data.licenses);
+  }).catch(function() {
+    errEl.textContent = 'Erro de conexão.';
+    errEl.style.display = 'block';
+  });
+}
+
+document.getElementById('login-pw').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+function renderTable(licenses) {
+  var total = licenses.length;
+  var active = licenses.filter(function(l) { return l.hwid; }).length;
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-active').textContent = active;
+  document.getElementById('st-available').textContent = total - active;
+
+  if (total === 0) {
+    document.getElementById('table-area').innerHTML = '<div class="empty">Nenhuma licença cadastrada ainda.</div>';
+    return;
+  }
+
+  var html = '<table><thead><tr><th>Chave</th><th>Email</th><th>Status</th><th>Hardware</th><th>Nota</th><th>Criada em</th><th>Ações</th></tr></thead><tbody>';
+  licenses.forEach(function(l) {
+    var status = l.hwid
+      ? '<span class="status-active">Ativada</span>'
+      : '<span class="status-available">Disponível</span>';
+    var hwid = l.hwid ? '<span class="hwid-cell">' + escapeHtml(l.hwid.slice(0, 12)) + '...</span>' : '—';
+    var date = l.created_at ? new Date(l.created_at).toLocaleDateString('pt-BR') : '—';
+    var nota = l.nota ? escapeHtml(l.nota) : '—';
+
+    html += '<tr>';
+    html += '<td class="key-cell">' + escapeHtml(l.key) + '</td>';
+    html += '<td>' + escapeHtml(l.email) + '</td>';
+    html += '<td>' + status + '</td>';
+    html += '<td>' + hwid + '</td>';
+    html += '<td>' + nota + '</td>';
+    html += '<td>' + date + '</td>';
+    html += '<td><div class="actions">';
+    if (l.hwid) {
+      html += '<button class="btn btn-danger btn-sm" onclick="doReset(\'' + l.key + '\')">Resetar</button>';
+    }
+    html += '<button class="btn btn-ghost btn-sm" onclick="doDelete(\'' + l.key + '\')">Excluir</button>';
+    html += '</div></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('table-area').innerHTML = html;
+}
+
+function refreshList() {
+  api('list').then(function(data) {
+    if (data.ok) renderTable(data.licenses);
+  });
+}
+
+function doGenerate() {
+  var email = document.getElementById('gen-email').value.trim();
+  if (!email) { showMsg('Preencha o email/identificação.', 'error'); return; }
+  var nota = document.getElementById('gen-nota').value.trim();
+  var qty = document.getElementById('gen-qty').value;
+
+  api('generate', { email: email, nota: nota, qty: qty }).then(function(data) {
+    if (data.ok && data.keys && data.keys.length > 0) {
+      showMsg(data.keys.length + ' chave(s) gerada(s): <strong style="font-family:monospace;">' + data.keys.join(', ') + '</strong>', 'success');
+      document.getElementById('gen-email').value = '';
+      document.getElementById('gen-nota').value = '';
+      refreshList();
+    } else {
+      showMsg('Erro ao gerar: ' + (data.error || 'desconhecido'), 'error');
+    }
+  }).catch(function() { showMsg('Erro de conexão.', 'error'); });
+}
+
+function doReset(key) {
+  if (!confirm('Resetar ativação de ' + key + '?')) return;
+  api('reset', { key: key }).then(function(data) {
+    if (data.ok) { showMsg('Ativação de <strong>' + key + '</strong> resetada.', 'success'); refreshList(); }
+    else showMsg('Erro: ' + (data.error || ''), 'error');
+  });
+}
+
+function doDelete(key) {
+  if (!confirm('Excluir licença ' + key + '? Esta ação não pode ser desfeita.')) return;
+  api('delete', { key: key }).then(function(data) {
+    if (data.ok) { showMsg('Licença <strong>' + key + '</strong> excluída.', 'success'); refreshList(); }
+    else showMsg('Erro: ' + (data.error || ''), 'error');
+  });
+}
+
+// ── Cupons ──────────────────────────────────────────────
+
+function refreshCoupons() {
+  api('list-coupons').then(function(data) {
+    if (data.ok) renderCouponTable(data.coupons, data.revenue || {});
+  });
+}
+
+function formatBRL(value) {
+  return 'R$' + value.toFixed(2).replace('.', ',');
+}
+
+function renderCouponTable(coupons, revenue) {
+  var total = coupons.length;
+  var activeCount = coupons.filter(function(c) { return c.active; }).length;
+  var totalUses = 0;
+  var totalRevenue = 0;
+
+  // Somar usos e faturamento de todos os cupons
+  for (var code in revenue) {
+    totalUses += revenue[code].uses;
+    totalRevenue += revenue[code].revenue;
+  }
+
+  document.getElementById('cp-total').textContent = total;
+  document.getElementById('cp-active-count').textContent = activeCount;
+  document.getElementById('cp-total-uses').textContent = totalUses;
+  document.getElementById('cp-total-revenue').textContent = formatBRL(totalRevenue);
+
+  if (total === 0) {
+    document.getElementById('coupon-table-area').innerHTML = '<div class="empty">Nenhum cupom cadastrado ainda.</div>';
+    return;
+  }
+
+  var html = '<table><thead><tr><th>Código</th><th>Influenciador</th><th>Desconto</th><th>Vendas</th><th>Faturamento</th><th>Status</th><th>Expira em</th><th>Criado em</th><th>Ações</th></tr></thead><tbody>';
+  coupons.forEach(function(c) {
+    var stats = revenue[c.code] || { uses: 0, revenue: 0 };
+    var discountText = c.discount_type === 'percent'
+      ? c.discount_value + '%'
+      : 'R$' + parseFloat(c.discount_value).toFixed(2);
+    var usesText = stats.uses + (c.max_uses ? '/' + c.max_uses : '');
+    var revenueText = formatBRL(stats.revenue);
+    var status = c.active
+      ? '<span class="coupon-active">Ativo</span>'
+      : '<span class="coupon-inactive">Inativo</span>';
+    var expires = c.expires_at ? new Date(c.expires_at).toLocaleDateString('pt-BR') : 'Sem expiração';
+    var created = c.created_at ? new Date(c.created_at).toLocaleDateString('pt-BR') : '—';
+    var toggleLabel = c.active ? 'Desativar' : 'Ativar';
+    var toggleClass = c.active ? 'btn-danger' : 'btn-ghost';
+
+    html += '<tr>';
+    html += '<td class="coupon-code">' + escapeHtml(c.code) + '</td>';
+    html += '<td>' + (c.influencer ? escapeHtml(c.influencer) : '—') + '</td>';
+    html += '<td>' + discountText + '</td>';
+    html += '<td>' + usesText + '</td>';
+    html += '<td style="font-weight:700;color:#f9e2af">' + revenueText + '</td>';
+    html += '<td>' + status + '</td>';
+    html += '<td>' + expires + '</td>';
+    html += '<td>' + created + '</td>';
+    html += '<td><div class="actions">';
+    html += '<button class="btn ' + toggleClass + ' btn-sm" onclick="doToggleCoupon(\'' + c.code + '\',' + !c.active + ')">' + toggleLabel + '</button>';
+    html += '<button class="btn btn-ghost btn-sm" onclick="doDeleteCoupon(\'' + c.code + '\')">Excluir</button>';
+    html += '</div></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('coupon-table-area').innerHTML = html;
+}
+
+function doCreateCoupon() {
+  var code = document.getElementById('cp-code').value.trim().toUpperCase();
+  if (!code) { showMsg('Preencha o código do cupom.', 'error'); return; }
+  var value = document.getElementById('cp-value').value;
+  if (!value || parseFloat(value) <= 0) { showMsg('Preencha o valor do desconto.', 'error'); return; }
+
+  var payload = {
+    code: code,
+    discount_type: document.getElementById('cp-type').value,
+    discount_value: value,
+    influencer: document.getElementById('cp-influencer').value.trim(),
+    max_uses: document.getElementById('cp-max').value || null,
+    expires_at: document.getElementById('cp-expires').value || null
+  };
+
+  api('create-coupon', payload).then(function(data) {
+    if (data.ok) {
+      showMsg('Cupom <strong>' + code + '</strong> criado com sucesso!', 'success');
+      document.getElementById('cp-code').value = '';
+      document.getElementById('cp-influencer').value = '';
+      document.getElementById('cp-value').value = '';
+      document.getElementById('cp-max').value = '';
+      document.getElementById('cp-expires').value = '';
+      refreshCoupons();
+    } else {
+      showMsg('Erro: ' + (data.error || 'desconhecido'), 'error');
+    }
+  }).catch(function() { showMsg('Erro de conexão.', 'error'); });
+}
+
+function doToggleCoupon(code, active) {
+  api('toggle-coupon', { code: code, active: active }).then(function(data) {
+    if (data.ok) {
+      showMsg('Cupom <strong>' + code + '</strong> ' + (active ? 'ativado' : 'desativado') + '.', 'success');
+      refreshCoupons();
+    } else {
+      showMsg('Erro: ' + (data.error || ''), 'error');
+    }
+  });
+}
+
+function doDeleteCoupon(code) {
+  if (!confirm('Excluir cupom ' + code + '? Esta ação não pode ser desfeita.')) return;
+  api('delete-coupon', { code: code }).then(function(data) {
+    if (data.ok) { showMsg('Cupom <strong>' + code + '</strong> excluído.', 'success'); refreshCoupons(); }
+    else showMsg('Erro: ' + (data.error || ''), 'error');
+  });
+}
+</script>
+</body>
+</html>

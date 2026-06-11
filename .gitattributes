@@ -1,0 +1,7 @@
+# Normaliza quebras de linha: LF no repositório, nativo no checkout.
+* text=auto
+
+# Binários — nunca normalizar
+*.exe   binary
+*.ico   binary
+*.png   binary
