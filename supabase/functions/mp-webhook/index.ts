@@ -125,7 +125,7 @@ async function sendLicenseEmail(to: string, key: string) {
   });
 }
 
-async function processPayment(paymentId: string, token: string, supabase: any): Promise<{ key: string; email: string; pending?: boolean } | null> {
+async function processPayment(paymentId: string, token: string, supabase: any): Promise<{ key: string; email: string; pending?: boolean; approvedAt?: string | null } | null> {
   const payment = await getPaymentInfo(paymentId, token);
   if (!payment) return null;
 
@@ -133,6 +133,10 @@ async function processPayment(paymentId: string, token: string, supabase: any): 
   if (payment.status !== "approved") {
     return { key: "", email: "", pending: true };
   }
+
+  // Horário de aprovação — usado para só exibir a chave na tela de sucesso
+  // de compras recentes (anti-enumeração de payment_id no redirect GET).
+  const approvedAt: string | null = payment.date_approved ?? null;
 
   // Email coletado por nós no checkout vai no metadata. Priorizamos ele,
   // pois payment.payer.email depende do que o comprador digita no MP (muitas
@@ -156,7 +160,7 @@ async function processPayment(paymentId: string, token: string, supabase: any): 
     .single();
 
   if (existing) {
-    return { key: existing.key, email: existing.email };
+    return { key: existing.key, email: existing.email, approvedAt };
   }
 
   // Cupom: tenta do metadata do payment, senão busca da preferência original
@@ -203,7 +207,7 @@ async function processPayment(paymentId: string, token: string, supabase: any): 
       .limit(1)
       .single();
     if (raceExisting) {
-      return { key: raceExisting.key, email: raceExisting.email };
+      return { key: raceExisting.key, email: raceExisting.email, approvedAt };
     }
     return null;
   }
@@ -220,7 +224,7 @@ async function processPayment(paymentId: string, token: string, supabase: any): 
     console.error("Erro ao enviar e-mail:", err)
   );
 
-  return { key, email };
+  return { key, email, approvedAt };
 }
 
 // Página HTML de sucesso mostrada ao comprador
@@ -307,8 +311,19 @@ serve(async (req) => {
         // Pagamento pendente — redireciona com status pending e payment_id para polling
         return Response.redirect(`${siteUrl}?purchase=pending&payment_id=${paymentId}`, 302);
       } else if (result && result.key) {
-        // Sucesso — redireciona com a chave
-        return Response.redirect(`${siteUrl}?purchase=success&key=${encodeURIComponent(result.key)}`, 302);
+        // Anti-enumeração (IDOR): só expõe a chave na URL se a aprovação foi
+        // recente (~30 min). Assim o comprador legítimo, que volta do MP em
+        // segundos, vê a chave na tela; mas quem enumera payment_id de compras
+        // antigas não recebe chave nenhuma — só a confirmação. A chave sempre
+        // segue por e-mail (envio garantido no fluxo).
+        const RECENCY_MS = 30 * 60 * 1000;
+        const approvedMs = result.approvedAt ? new Date(result.approvedAt).getTime() : 0;
+        const isRecent = approvedMs > 0 && (Date.now() - approvedMs) < RECENCY_MS;
+        if (isRecent) {
+          return Response.redirect(`${siteUrl}?purchase=success&key=${encodeURIComponent(result.key)}`, 302);
+        }
+        // Compra antiga / chave já entregue — confirma sem expor a chave.
+        return Response.redirect(`${siteUrl}?purchase=success`, 302);
       }
     }
 

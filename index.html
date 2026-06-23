@@ -2358,6 +2358,16 @@ function closePurchaseModal() {
       + '<p style="color:var(--muted);font-size:1rem;margin:0;"><strong style="color:var(--gold);">3.</strong> Cole a chave e clique <strong style="color:var(--gold);">Ativar</strong></p>'
       + '</div>'
       + '<p style="color:var(--muted);font-size:1.1rem;">Guarde esta chave! Ela e vinculada a sua maquina.</p>';
+  } else if (purchase === 'success') {
+    // Sucesso sem chave na URL (compra antiga / link reaberto): a chave nao e
+    // exposta por seguranca; foi enviada por e-mail.
+    content = '<h2 style="color:var(--green);font-family:var(--pixel-font);font-size:1.2rem;line-height:2;margin:0 0 8px;">Compra concluida!</h2>'
+      + '<div style="background:var(--bg);border:3px solid var(--gold);padding:18px;margin-bottom:16px;text-align:center;">'
+      + '<p style="color:var(--text);font-size:1.1rem;margin:0;">Sua chave de licenca foi enviada para o <strong style="color:var(--gold);">seu e-mail</strong>.</p>'
+      + '<p style="color:var(--muted);font-size:1rem;margin:8px 0 0;">Verifique tambem a caixa de spam.</p>'
+      + '</div>'
+      + '<p style="color:var(--muted);font-size:1rem;">Nao recebeu? Fale com a gente: <strong style="color:var(--gold);">contato.naka@hotmail.com</strong>'
+      + ' ou <a href="https://discord.gg/b45u2gN7Zx" target="_blank" style="color:#7289da;">Discord</a>.</p>';
   } else if (purchase === 'pending') {
     content = '<h2 style="color:var(--gold);font-family:var(--pixel-font);font-size:1rem;line-height:2;margin:0 0 8px;">Aguardando pagamento...</h2>'
       + '<p style="color:var(--muted);font-size:1rem;">O pagamento esta sendo processado. Aguarde.</p>'
