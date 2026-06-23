@@ -20,10 +20,19 @@ serve(async (req) => {
   try {
     const { key, hwid } = await req.json();
 
-    if (!key || !hwid) {
+    if (!key || !hwid || typeof key !== "string" || typeof hwid !== "string") {
       return new Response(
         JSON.stringify({ ok: false, error: "Chave e hardware ID são obrigatórios." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Limites de tamanho e formato — endpoint público, reduz abuso/armazenamento.
+    const normalizedKey = key.trim().toUpperCase();
+    if (!/^PQ-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(normalizedKey) || hwid.length > 256) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "Chave de licença não encontrada." }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -36,7 +45,7 @@ serve(async (req) => {
     const { data: license, error } = await supabase
       .from("licenses")
       .select("*")
-      .eq("key", key.trim().toUpperCase())
+      .eq("key", normalizedKey)
       .single();
 
     if (error || !license) {

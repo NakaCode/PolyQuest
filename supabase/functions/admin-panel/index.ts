@@ -18,15 +18,27 @@ function json(data: unknown, status = 200) {
 }
 
 function generateKey(): string {
+  // 32 símbolos → 256 % 32 === 0, logo módulo não introduz viés.
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const segment = () => {
-    let s = "";
-    for (let i = 0; i < 4; i++) {
-      s += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return s;
-  };
-  return `PQ-${segment()}-${segment()}-${segment()}`;
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < 12; i++) {
+    out += chars[bytes[i] % 32];
+    if (i === 3 || i === 7) out += "-";
+  }
+  return `PQ-${out}`;
+}
+
+// Comparação em tempo constante — evita timing attack na senha do admin.
+function safeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  if (ab.length !== bb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ab.length; i++) diff |= ab[i] ^ bb[i];
+  return diff === 0;
 }
 
 function getSupabase() {
@@ -52,8 +64,14 @@ serve(async (req) => {
     const { action, password } = body;
 
     // Sem senha configurada no ambiente, o painel fica bloqueado
-    // (nunca cai em um valor padrão conhecido).
-    if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD) {
+    // (nunca cai em um valor padrão conhecido). Comparação em tempo
+    // constante e limite de tamanho para evitar timing attack / abuso.
+    if (
+      !ADMIN_PASSWORD ||
+      typeof password !== "string" ||
+      password.length > 256 ||
+      !safeEqual(password, ADMIN_PASSWORD)
+    ) {
       return json({ ok: false, error: "Senha incorreta." }, 401);
     }
 

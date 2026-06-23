@@ -13,6 +13,14 @@ dist/
 # NB: PolyQuest.spec é fonte (config do build) e fica versionado.
 # NB: PolyQuest_Setup.exe na raiz fica versionado — o site o serve p/ download.
 
+# ── Claude Code (pode conter comandos com tokens locais) ─
+.claude/settings.local.json
+
+# ── Segredos / variáveis de ambiente ────────────────────
+.env
+.env.*
+*.secret
+
 # ── Supabase CLI (scratch local) ────────────────────────
 supabase/.temp/
 

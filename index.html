@@ -2168,6 +2168,10 @@
       <span id="modal-price" style="color:var(--gold);font-family:var(--pixel-font);font-size:1.4rem;">R$ 9,99</span>
     </div>
 
+    <label style="font-family:var(--body-font);font-size:1.1rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">E-mail <span style="color:var(--gold);">*</span></label>
+    <input type="email" id="modal-email-input" required placeholder="seu@email.com" autocomplete="email" style="width:100%;box-sizing:border-box;background:var(--bg);border:2px solid var(--border);color:var(--text);padding:8px 12px;font-family:var(--body-font);font-size:1.1rem;outline:none;margin-bottom:6px;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" oninput="document.getElementById('modal-email-msg').textContent='';" />
+    <p id="modal-email-msg" style="color:#ff4444;font-size:1.05rem;min-height:16px;margin-bottom:12px;"></p>
+
     <label style="font-family:var(--body-font);font-size:1.1rem;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Cupom de desconto</label>
     <div style="display:flex;gap:6px;margin-bottom:6px;">
       <input type="text" id="modal-coupon-input" placeholder="Ex: GAMER10" style="flex:1;background:var(--bg);border:2px solid var(--border);color:var(--text);padding:8px 12px;font-family:var(--body-font);font-size:1.1rem;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" />
@@ -2198,6 +2202,8 @@ var modalCoupon = '';
 function openCouponModal(e) {
   if (e) e.preventDefault();
   modalCoupon = '';
+  document.getElementById('modal-email-input').value = '';
+  document.getElementById('modal-email-msg').textContent = '';
   document.getElementById('modal-coupon-input').value = '';
   document.getElementById('modal-coupon-msg').textContent = '';
   document.getElementById('modal-discount-row').style.display = 'none';
@@ -2206,7 +2212,23 @@ function openCouponModal(e) {
   document.getElementById('modal-checkout-btn').disabled = false;
   var modal = document.getElementById('coupon-modal');
   modal.style.display = 'flex';
-  document.getElementById('modal-coupon-input').focus();
+  document.getElementById('modal-email-input').focus();
+}
+
+// Valida e retorna o email do modal, ou '' se inválido (e mostra mensagem)
+function getValidCheckoutEmail() {
+  var input = document.getElementById('modal-email-input');
+  var msg = document.getElementById('modal-email-msg');
+  var email = (input.value || '').trim();
+  var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!re.test(email)) {
+    msg.textContent = 'Informe um e-mail válido para receber sua chave.';
+    input.style.borderColor = '#ff4444';
+    input.focus();
+    return '';
+  }
+  msg.textContent = '';
+  return email;
 }
 
 function closeCouponModal() {
@@ -2236,7 +2258,7 @@ function modalApplyCoupon() {
   fetch(CHECKOUT_API, {
     method: 'POST',
     headers: CHECKOUT_HEADERS,
-    body: JSON.stringify({ coupon: code })
+    body: JSON.stringify({ coupon: code, validate_only: true })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
@@ -2266,11 +2288,14 @@ function modalApplyCoupon() {
 }
 
 function modalGoCheckout() {
+  var email = getValidCheckoutEmail();
+  if (!email) return;
+
   var btn = document.getElementById('modal-checkout-btn');
   btn.textContent = 'Redirecionando...';
   btn.disabled = true;
 
-  var payload = {};
+  var payload = { email: email };
   if (modalCoupon) payload.coupon = modalCoupon;
 
   fetch(CHECKOUT_API, {

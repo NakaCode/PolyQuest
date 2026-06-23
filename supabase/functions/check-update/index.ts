@@ -35,6 +35,9 @@ serve(async (req) => {
   try {
     const { version } = await req.json();
 
+    // Limita tamanho da string de versão (endpoint público).
+    const safeVersion = (typeof version === "string" && version.length <= 32) ? version : "0.0.0";
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -55,7 +58,7 @@ serve(async (req) => {
       );
     }
 
-    if (!isNewer(data.version, version ?? "0.0.0")) {
+    if (!isNewer(data.version, safeVersion)) {
       return new Response(
         JSON.stringify({ has_update: false }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }

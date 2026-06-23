@@ -361,6 +361,30 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# ─────────────────────────────────────────────────────────────────────────
+# Edge Functions — TODAS precisam ser públicas (verify_jwt = false).
+# O redirect/webhook do Mercado Pago e o app desktop chamam sem header
+# Authorization. Se isso voltar a true, o fluxo de compra/ativação quebra
+# com 401. Mantenha estas entradas — assim o deploy nunca regride.
+# ─────────────────────────────────────────────────────────────────────────
+[functions.mp-webhook]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.activate]
+verify_jwt = false
+
+[functions.check-license]
+verify_jwt = false
+
+[functions.check-update]
+verify_jwt = false
+
+[functions.admin-panel]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

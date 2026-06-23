@@ -20,6 +20,14 @@ serve(async (req) => {
   try {
     const { key, hwid } = await req.json();
 
+    // Entrada inválida/abusiva → trata como licença inválida (sem tocar no banco).
+    if (typeof key !== "string" || key.length > 64 || (hwid != null && (typeof hwid !== "string" || hwid.length > 256))) {
+      return new Response(
+        JSON.stringify({ ok: true, valid: false }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""

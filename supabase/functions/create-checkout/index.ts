@@ -41,12 +41,29 @@ serve(async (req) => {
 
     let email = "";
     let couponCode = "";
+    let validateOnly = false;
     try {
       const body = await req.json();
-      email = body?.email ?? "";
-      couponCode = (body?.coupon ?? "").trim().toUpperCase();
+      email = (body?.email ?? "").trim().slice(0, 254);
+      couponCode = (body?.coupon ?? "").trim().toUpperCase().slice(0, 64);
+      validateOnly = body?.validate_only === true;
     } catch {
       // body vazio é ok
+    }
+
+    // ── Validação de email ───────────────────────────────────
+    // TRANSIÇÃO: enquanto o index.html novo (com campo de email obrigatório)
+    // não estiver publicado na Vercel, NÃO exigimos email aqui — senão o site
+    // antigo, que não envia email, quebraria com 400. Apenas rejeitamos email
+    // MALFORMADO se for enviado. Quando o front novo estiver no ar, troque
+    // `email && !EMAIL_RE.test(email)` por `!validateOnly && !EMAIL_RE.test(email)`
+    // para tornar o email realmente obrigatório no servidor.
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!validateOnly && email && !EMAIL_RE.test(email)) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "Informe um e-mail válido para receber sua chave." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // ── Validar cupom ────────────────────────────────────────
@@ -96,6 +113,20 @@ serve(async (req) => {
       couponApplied = coupon.code;
     }
 
+    // Pré-validação de cupom: devolve só os preços, sem criar preferência no MP
+    if (validateOnly) {
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          original_price: BASE_PRICE,
+          final_price: finalPrice,
+          discount,
+          coupon_applied: couponApplied || null,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // URL de retorno após pagamento
     const successUrl = `${SUPABASE_URL}/functions/v1/mp-webhook?action=success`;
 
@@ -124,10 +155,11 @@ serve(async (req) => {
         coupon_code: couponApplied || null,
         original_price: BASE_PRICE,
         final_price: finalPrice,
+        email,
       },
     };
 
-    // Se tiver email, preenche o payer
+    // Só preenche o payer se houver email (evita payer.email vazio no MP).
     if (email) {
       preference.payer = { email };
     }

@@ -12,15 +12,16 @@ const corsHeaders = {
 };
 
 function generateKey(): string {
+  // 32 símbolos → 256 % 32 === 0, logo módulo não introduz viés.
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const segment = () => {
-    let s = "";
-    for (let i = 0; i < 4; i++) {
-      s += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return s;
-  };
-  return `PQ-${segment()}-${segment()}-${segment()}`;
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < 12; i++) {
+    out += chars[bytes[i] % 32];
+    if (i === 3 || i === 7) out += "-";
+  }
+  return `PQ-${out}`;
 }
 
 async function hmacSha256Hex(secret: string, message: string): Promise<string> {
@@ -133,7 +134,18 @@ async function processPayment(paymentId: string, token: string, supabase: any): 
     return { key: "", email: "", pending: true };
   }
 
-  const email = payment.payer?.email ?? payment.additional_info?.payer?.email ?? "desconhecido@email.com";
+  // Email coletado por nós no checkout vai no metadata. Priorizamos ele,
+  // pois payment.payer.email depende do que o comprador digita no MP (muitas
+  // vezes vazio em checkout como convidado → caía em "desconhecido").
+  let metaEmail: string | null = (payment.metadata?.email as string) ?? null;
+  if (!metaEmail) {
+    const prefMeta = await getPreferenceMetadata(payment.order?.id ?? payment.preference_id ?? "", token);
+    metaEmail = (prefMeta?.email as string) ?? null;
+  }
+  const email = metaEmail
+    ?? payment.payer?.email
+    ?? payment.additional_info?.payer?.email
+    ?? "desconhecido@email.com";
 
   // Verifica se já existe licença para este payment_id (evita duplicata)
   const { data: existing } = await supabase
