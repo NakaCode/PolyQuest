@@ -48,6 +48,16 @@ function getSupabase() {
   );
 }
 
+// IP do cliente (primeiro item do x-forwarded-for inserido pela borda).
+function clientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for") ?? "";
+  return xff.split(",")[0].trim() || "unknown";
+}
+
+// Rate limiting: bloqueia o IP após MAX_FAILS senhas erradas em WINDOW_MIN min.
+const MAX_FAILS = 8;
+const WINDOW_MIN = 15;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -63,19 +73,43 @@ serve(async (req) => {
     const body = await req.json();
     const { action, password } = body;
 
-    // Sem senha configurada no ambiente, o painel fica bloqueado
-    // (nunca cai em um valor padrão conhecido). Comparação em tempo
-    // constante e limite de tamanho para evitar timing attack / abuso.
-    if (
-      !ADMIN_PASSWORD ||
-      typeof password !== "string" ||
-      password.length > 256 ||
-      !safeEqual(password, ADMIN_PASSWORD)
-    ) {
+    const supabase = getSupabase();
+    const ip = clientIp(req);
+
+    // ── Rate limiting por IP ──────────────────────────────────
+    // Conta senhas erradas recentes deste IP; bloqueia se passou do limite.
+    const since = new Date(Date.now() - WINDOW_MIN * 60 * 1000).toISOString();
+    const { count: fails } = await supabase
+      .from("admin_login_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("ip", ip)
+      .gte("created_at", since);
+
+    if ((fails ?? 0) >= MAX_FAILS) {
+      return json({ ok: false, error: "Muitas tentativas. Tente novamente em alguns minutos." }, 429);
+    }
+
+    // ── Verificação de senha ─────────────────────────────────
+    // Sem senha no ambiente, o painel fica bloqueado (nunca cai em padrão
+    // conhecido). Comparação em tempo constante e limite de tamanho.
+    const passOk =
+      !!ADMIN_PASSWORD &&
+      typeof password === "string" &&
+      password.length <= 256 &&
+      safeEqual(password, ADMIN_PASSWORD);
+
+    if (!passOk) {
+      // Registra a falha (alimenta o rate limiting).
+      await supabase.from("admin_login_attempts").insert({ ip });
       return json({ ok: false, error: "Senha incorreta." }, 401);
     }
 
-    const supabase = getSupabase();
+    // Sucesso: zera as falhas deste IP e limpa registros antigos (>1 dia).
+    await supabase.from("admin_login_attempts").delete().eq("ip", ip);
+    await supabase
+      .from("admin_login_attempts")
+      .delete()
+      .lt("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
     // ── Listar licenças ──────────────────────────────────────
     if (action === "list") {
