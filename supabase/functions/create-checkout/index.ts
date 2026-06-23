@@ -51,15 +51,12 @@ serve(async (req) => {
       // body vazio é ok
     }
 
-    // ── Validação de email ───────────────────────────────────
-    // TRANSIÇÃO: enquanto o index.html novo (com campo de email obrigatório)
-    // não estiver publicado na Vercel, NÃO exigimos email aqui — senão o site
-    // antigo, que não envia email, quebraria com 400. Apenas rejeitamos email
-    // MALFORMADO se for enviado. Quando o front novo estiver no ar, troque
-    // `email && !EMAIL_RE.test(email)` por `!validateOnly && !EMAIL_RE.test(email)`
-    // para tornar o email realmente obrigatório no servidor.
+    // ── Email obrigatório para gerar o checkout de fato ──────
+    // (validate_only é usado só para pré-validar cupom, não exige email)
+    // O front ao vivo já coleta e envia email; aqui é a defesa em
+    // profundidade contra chamadas diretas à API sem email.
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!validateOnly && email && !EMAIL_RE.test(email)) {
+    if (!validateOnly && !EMAIL_RE.test(email)) {
       return new Response(
         JSON.stringify({ ok: false, error: "Informe um e-mail válido para receber sua chave." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
