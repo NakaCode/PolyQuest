@@ -123,11 +123,13 @@ class TranslationWorker(QThread):
     finished = pyqtSignal(list, dict, int)   # blocks, mss_monitor, falhas de rede
     error = pyqtSignal(str)
 
-    def __init__(self, config: dict, region: dict | None = None):
+    def __init__(self, config: dict, region: dict | None = None, ai: dict | None = None):
         super().__init__()
         self._config = config
         # region = {"bbox": mss dict absoluto, "monitor": mss dict do monitor}
         self._region = region
+        # ai = {"provider": ..., "api_key": ...} quando o Modo IA está ativo
+        self._ai = ai
 
     def run(self):
         try:
@@ -163,6 +165,7 @@ class TranslationWorker(QThread):
                 target=self._config.get("target_language", "pt"),
                 mode=self._config.get("translation_mode", "balanced"),
                 glossary=self._config.get("glossary"),
+                ai=self._ai,
             )
             self.finished.emit(blocks, monitor, get_last_failures())
 
@@ -329,10 +332,19 @@ class PolyQuest(QObject):
         self._notified_fail = False
         self._run_worker()
 
+    def _ai_config(self) -> dict | None:
+        """Config do Modo IA (global, fora dos perfis) quando ativo e premium."""
+        ai = self._full_config.get("ai") or {}
+        if ai.get("enabled") and ai.get("api_key") and is_premium():
+            return {"provider": ai.get("provider", "claude"), "api_key": ai["api_key"]}
+        return None
+
     def _run_worker(self):
         self._working = True
         self._tray.setToolTip(t("tray_tooltip_translating"))
-        self._worker = TranslationWorker(self._config, region=self._session_region)
+        self._worker = TranslationWorker(
+            self._config, region=self._session_region, ai=self._ai_config()
+        )
         self._worker.finished.connect(self._on_finished)
         self._worker.error.connect(self._on_error)
         self._worker.start()

@@ -2,6 +2,7 @@ mss
 Pillow
 deep-translator
 requests
+anthropic
 keyboard
 PyQt6
 winsdk

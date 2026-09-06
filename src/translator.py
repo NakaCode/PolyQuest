@@ -1,4 +1,5 @@
 import hashlib
+import json
 import re
 import sqlite3
 import threading
@@ -290,12 +291,71 @@ def _make_chunks(texts: List[str], max_chars: int = _CHUNK_MAX_CHARS) -> List[Li
     return chunks
 
 
+# ── Modo IA (BYOK) ─────────────────────────────────────────────────
+
+def _ai_cache_prefix(ai: dict, glossary: list | None) -> str:
+    """Cache da IA é separado do Google: inclui provider e hash do glossário
+    (a IA aplica o glossário no próprio texto, então editar o glossário
+    precisa invalidar essas entradas)."""
+    ghash = hashlib.md5(
+        json.dumps(glossary or [], sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()[:8]
+    return f"ai:{ai.get('provider', '')}:{ghash}:"
+
+
+def _translate_ai(
+    blocks: list, source: str, target: str,
+    glossary: list | None, ai: dict,
+) -> list:
+    """
+    Tenta traduzir os blocos via LLM (tela inteira como contexto).
+    Retorna os blocos NÃO resolvidos, para o caminho Google assumir.
+    """
+    from src.ai_translator import translate_texts
+
+    prefix = _ai_cache_prefix(ai, glossary)
+    pending: list[tuple[TextBlock, str]] = []
+    for block in blocks:
+        clean = _sanitize(block.original)
+        cached = _cache_get(prefix + clean, source, target)
+        if cached is not None:
+            block.translated = cached
+        else:
+            pending.append((block, clean))
+    if not pending:
+        return []
+
+    unique: dict[str, list] = {}
+    for block, clean in pending:
+        unique.setdefault(clean, []).append(block)
+    texts = list(unique.keys())
+
+    out = translate_texts(
+        texts, source, target,
+        ai.get("provider", ""), ai.get("api_key", ""), glossary,
+    )
+    if out is None:
+        # IA indisponível (key inválida, rede, rate-limit) → fallback Google
+        return [block for block, _ in pending]
+
+    for clean, translated in zip(texts, out):
+        if translated and _looks_valid(translated):
+            _cache_put(prefix + clean, source, target, translated)
+            for block in unique[clean]:
+                block.translated = translated
+        else:
+            for block in unique[clean]:
+                block.translated = block.original
+    return []
+
+
 def translate_blocks(
     blocks: List[TextBlock],
     source: str = "en",
     target: str = "pt",
     mode: str = "balanced",
     glossary: list | None = None,
+    ai: dict | None = None,
 ) -> List[TextBlock]:
     global _last_failures
     _last_failures = 0
@@ -306,15 +366,24 @@ def translate_blocks(
     min_ratio = preset["min_letter_ratio"]
     min_len = preset["min_length"]
 
-    # Fase 1: filtra, aplica glossário e resolve pelo cache.
+    # Fase 0: filtra o não-traduzível
+    translatable: list = []
+    for block in blocks:
+        if not _is_translatable(block.original, min_ratio, min_len):
+            block.translated = block.original
+        else:
+            translatable.append(block)
+
+    # Fase 0.5: Modo IA (se configurado) — o que falhar desce pro Google
+    if ai and ai.get("api_key"):
+        translatable = _translate_ai(translatable, source, target, glossary, ai)
+
+    # Fase 1: aplica glossário e resolve pelo cache.
     # O cache guarda a tradução ANTES do restore do glossário, com a chave
     # calculada sobre o texto já com placeholders — assim editar o glossário
     # nunca serve tradução velha do cache persistente.
     pending: list[tuple[TextBlock, str, dict]] = []
-    for block in blocks:
-        if not _is_translatable(block.original, min_ratio, min_len):
-            block.translated = block.original
-            continue
+    for block in translatable:
         clean = _sanitize(block.original)
         if glossary:
             gtext, placeholders = _apply_glossary(clean, glossary)

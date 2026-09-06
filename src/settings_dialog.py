@@ -205,8 +205,8 @@ def _separator() -> QFrame:
 
 
 class SettingsDialog(QDialog):
-    _HEIGHT_BASE = 560
-    _HEIGHT_CUSTOM = 600
+    _HEIGHT_BASE = 700
+    _HEIGHT_CUSTOM = 700
     _license_result = pyqtSignal(dict)
 
     def __init__(self, full_config: dict, config_path: Path, parent=None):
@@ -622,6 +622,58 @@ class SettingsDialog(QDialog):
         # Modo de tradução pertence à aba Tradução (após os idiomas)
         tab_capture.addLayout(row_mode)
 
+        # ── Seção: Modo IA (PRO, BYOK — key global, fora dos perfis) ──
+        tab_capture.addWidget(_separator())
+        tab_capture.addWidget(_section_label(t("ai_section"), premium=True))
+
+        ai_cfg = self._full_config.get("ai") or {}
+
+        row_ai_check = QHBoxLayout()
+        row_ai_check.setSpacing(8)
+        self._ai_check = QCheckBox(t("ai_enable"))
+        self._ai_check.setFixedWidth(148)
+        row_ai_check.addWidget(self._ai_check)
+        self._ai_pro_tag = _premium_tag()
+        row_ai_check.addWidget(self._ai_pro_tag)
+        row_ai_check.addStretch()
+        tab_capture.addLayout(row_ai_check)
+
+        row_ai_provider = QHBoxLayout()
+        row_ai_provider.setSpacing(8)
+        lbl_ai_provider = QLabel(t("ai_provider_label"))
+        lbl_ai_provider.setFixedWidth(148)
+        row_ai_provider.addWidget(lbl_ai_provider)
+        self._ai_provider_combo = QComboBox()
+        self._ai_provider_combo.addItem("Claude (Anthropic)", "claude")
+        self._ai_provider_combo.addItem("Gemini (Google)", "gemini")
+        self._ai_provider_combo.addItem("OpenAI", "openai")
+        row_ai_provider.addWidget(self._ai_provider_combo, 1)
+        tab_capture.addLayout(row_ai_provider)
+
+        row_ai_key = QHBoxLayout()
+        row_ai_key.setSpacing(8)
+        lbl_ai_key = QLabel(t("ai_key_label"))
+        lbl_ai_key.setFixedWidth(148)
+        row_ai_key.addWidget(lbl_ai_key)
+        self._ai_key_input = QLineEdit()
+        self._ai_key_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self._ai_key_input.setPlaceholderText(t("ai_key_placeholder"))
+        row_ai_key.addWidget(self._ai_key_input, 1)
+        tab_capture.addLayout(row_ai_key)
+
+        lbl_ai_hint = QLabel(t("ai_hint"))
+        lbl_ai_hint.setStyleSheet("color: #5a7a9a; font-size: 11px;")
+        lbl_ai_hint.setWordWrap(True)
+        tab_capture.addWidget(lbl_ai_hint)
+
+        self._ai_check.setChecked(bool(ai_cfg.get("enabled", False)))
+        idx = self._ai_provider_combo.findData(ai_cfg.get("provider", "claude"))
+        if idx >= 0:
+            self._ai_provider_combo.setCurrentIndex(idx)
+        self._ai_key_input.setText(ai_cfg.get("api_key", ""))
+        self._ai_check.toggled.connect(self._ai_provider_combo.setEnabled)
+        self._ai_check.toggled.connect(self._ai_key_input.setEnabled)
+
         # ═══ De volta à aba Geral: idioma da interface ═══
         root = tab_general
         root.addWidget(_separator())
@@ -778,6 +830,13 @@ class SettingsDialog(QDialog):
         self._cont_interval.setEnabled(p and self._cont_check.isChecked())
         if hasattr(self, '_cont_pro_tag'):
             self._cont_pro_tag.setVisible(not p)
+
+        # Modo IA
+        self._ai_check.setEnabled(p)
+        self._ai_provider_combo.setEnabled(p and self._ai_check.isChecked())
+        self._ai_key_input.setEnabled(p and self._ai_check.isChecked())
+        if hasattr(self, '_ai_pro_tag'):
+            self._ai_pro_tag.setVisible(not p)
 
         # Tema "Personalizar" — mostra/esconde "🔒" no dropdown
         self._loading = True
@@ -1110,6 +1169,13 @@ class SettingsDialog(QDialog):
 
         self._full_config["activeProfile"] = self._active_name
         self._full_config["profiles"] = self._profiles
+
+        # Modo IA é global (fora dos perfis); key fica gravada mesmo desativado
+        self._full_config["ai"] = {
+            "enabled": bool(self._premium and self._ai_check.isChecked()),
+            "provider": self._ai_provider_combo.currentData(),
+            "api_key": self._ai_key_input.text().strip(),
+        }
 
         with open(self._config_path, "w", encoding="utf-8") as f:
             json.dump(self._full_config, f, indent=4, ensure_ascii=False)
