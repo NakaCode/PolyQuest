@@ -11,7 +11,10 @@ build/
 dist/
 *.manifest
 # NB: PolyQuest.spec é fonte (config do build) e fica versionado.
-# NB: PolyQuest_Setup.exe na raiz fica versionado — o site o serve p/ download.
+# Instalador vai para o GitHub Releases (não mais versionado no repo)
+PolyQuest_Setup.exe
+# Backup antigo do site (removido do versionamento)
+index_v1_backup.html
 
 # ── Claude Code (pode conter comandos com tokens locais) ─
 .claude/settings.local.json
@@ -28,6 +31,9 @@ supabase/.temp/
 .polyquest_license
 translation_cache.db
 crash.log
+# config.json é local (prefs do usuário e, com o Modo IA, API key!)
+# O instalador usa config.default.json como modelo.
+config.json
 
 # ── Sistema operacional ─────────────────────────────────
 Thumbs.db

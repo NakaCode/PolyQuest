@@ -2,7 +2,7 @@
 ; Gera: PolyQuest_Setup.exe
 
 #define AppName      "PolyQuest"
-#define AppVersion   "1.4"
+#define AppVersion   "1.5"
 #define AppPublisher "PolyQuest"
 #define AppExeName   "PolyQuest.exe"
 #define AppURL       ""
@@ -45,7 +45,7 @@ Name: "startupicon"; Description: "Iniciar com o &Windows automaticamente"; Grou
 
 [Files]
 Source: "dist\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "config.json"; DestDir: "{app}"; Flags: onlyifdoesntexist
+Source: "config.default.json"; DestDir: "{app}"; DestName: "config.json"; Flags: onlyifdoesntexist
 Source: "icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "icon_settings.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "install_ocr.ps1"; DestDir: "{tmp}"; Flags: deleteafterinstall

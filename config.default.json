@@ -1,6 +1,6 @@
 {
     "hotkey": "*",
-    "ui_language": "pt",
+    "region_hotkey": null,
     "source_language": "en",
     "target_language": "pt",
     "translation_mode": "balanced",
@@ -8,5 +8,8 @@
     "background_opacity": 210,
     "theme": "dark",
     "monitor": null,
-    "source_resolution": null
+    "source_resolution": null,
+    "continuous_mode": false,
+    "continuous_interval": 3,
+    "glossary": []
 }
