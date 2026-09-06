@@ -1547,7 +1547,7 @@
     <div class="cta-box sr">
       <h2 data-i18n="cta_title">Baixe o PolyQuest</h2>
       <p data-i18n="cta_desc">Comece a jogar sem barreiras agora mesmo -- sem cadastro, sem complicacao. Depois, se quiser, desbloqueie os recursos Premium.</p>
-      <a href="/PolyQuest_Setup.exe" class="btn-primary" style="padding: .8rem 2rem; margin: 0 auto; display:inline-flex;">
+      <a href="https://github.com/NakaCode/PolyQuest/releases/latest/download/PolyQuest_Setup.exe" class="btn-primary" style="padding: .8rem 2rem; margin: 0 auto; display:inline-flex;">
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 4v11"/></svg>
         <span data-i18n="cta_btn">Baixar gratis</span>
       </a>
@@ -1619,8 +1619,25 @@
 
       <div class="changelog-entry latest sr">
         <div class="changelog-header">
-          <span class="changelog-version">v1.4</span>
+          <span class="changelog-version">v1.5</span>
           <span class="changelog-badge" data-i18n="cl_latest">Mais recente</span>
+          <span class="changelog-date">Setembro 2026</span>
+        </div>
+        <ul class="changelog-items">
+          <li data-i18n="cl_v15_1">Traducao ate 10x mais rapida -- a tela inteira e traduzida numa unica chamada</li>
+          <li data-i18n="cl_v15_2">Novo: Modo IA (Premium) -- traduza com Claude, Gemini ou OpenAI usando sua propria API key. A IA entende contexto de jogos</li>
+          <li data-i18n="cl_v15_3">Novo: Traducao por regiao -- selecione so a area que importa (ex: a caixa de dialogo)</li>
+          <li data-i18n="cl_v15_4">Novo: Modo continuo (Premium) -- retraducao automatica enquanto voce joga</li>
+          <li data-i18n="cl_v15_5">Cache persistente -- telas ja vistas traduzem na hora, mesmo sem internet</li>
+          <li data-i18n="cl_v15_6">Deteccao automatica do idioma de origem</li>
+          <li data-i18n="cl_v15_7">Overlay respeita o tamanho do texto original e configuracoes reorganizadas em abas</li>
+          <li data-i18n="cl_v15_8">Correcoes: glossario mais confiavel, aviso quando a traducao falha e crash ao trocar a tecla de atalho</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry sr">
+        <div class="changelog-header">
+          <span class="changelog-version">v1.4</span>
           <span class="changelog-date">Maio 2026</span>
         </div>
         <ul class="changelog-items">
@@ -1645,7 +1662,6 @@
       <div class="changelog-entry sr">
         <div class="changelog-header">
           <span class="changelog-version">v1.3</span>
-          <span class="changelog-badge" data-i18n="cl_latest">Mais recente</span>
           <span class="changelog-date">Abril 2026</span>
         </div>
         <ul class="changelog-items">
@@ -1902,6 +1918,14 @@
       cl_sub: "Acompanhe a evolu\u00e7\u00e3o do PolyQuest a cada vers\u00e3o.",
       cl_latest: "Mais recente",
       cl_hotfix: "Hotfix",
+      cl_v15_1: "Tradução até 10x mais rápida — a tela inteira é traduzida numa única chamada",
+      cl_v15_2: "Novo: Modo IA (Premium) — traduza com Claude, Gemini ou OpenAI usando sua própria API key. A IA entende contexto de jogos",
+      cl_v15_3: "Novo: Tradução por região — selecione só a área que importa (ex: a caixa de diálogo)",
+      cl_v15_4: "Novo: Modo contínuo (Premium) — retradução automática enquanto você joga",
+      cl_v15_5: "Cache persistente — telas já vistas traduzem na hora, mesmo sem internet",
+      cl_v15_6: "Detecção automática do idioma de origem",
+      cl_v15_7: "Overlay respeita o tamanho do texto original e configurações reorganizadas em abas",
+      cl_v15_8: "Correções: glossário mais confiável, aviso quando a tradução falha e crash ao trocar a tecla de atalho",
       cl_v14_1: "Cache inteligente de traduções — textos repetidos são traduzidos instantaneamente",
       cl_v14_2: "Sistema de notificação de atualização agora funcionando corretamente",
       cl_v131_1: "Instalação automática dos pacotes de idioma OCR do Windows durante o setup",
@@ -1995,7 +2019,16 @@
       faq_q5: "Does the app work without internet?", faq_a5: "OCR works offline. Translation requires internet (Google Translate API). Without internet, the original text is shown instead.",
       faq_q6: "Can I use it on multiple monitors?", faq_a6: "Yes. By default, PolyQuest automatically detects the active window's monitor. You can also fix a specific monitor in settings.",
       cl_tag: "Release notes", cl_sub: "Follow PolyQuest's evolution with each version.", cl_latest: "Latest",
-      cl_hotfix: "Hotfix", cl_v14_1: "Smart translation cache — repeated text is translated instantly", cl_v14_2: "Update notification system now working correctly",
+      cl_hotfix: "Hotfix",
+      cl_v15_1: "Up to 10x faster translation — the whole screen is translated in a single call",
+      cl_v15_2: "New: AI Mode (Premium) — translate with Claude, Gemini or OpenAI using your own API key. The AI understands game context",
+      cl_v15_3: "New: Region translation — select only the area that matters (e.g. the dialogue box)",
+      cl_v15_4: "New: Continuous mode (Premium) — automatic re-translation while you play",
+      cl_v15_5: "Persistent cache — screens you've seen translate instantly, even offline",
+      cl_v15_6: "Automatic source language detection",
+      cl_v15_7: "Overlay matches the original text size, and settings reorganized into tabs",
+      cl_v15_8: "Fixes: more reliable glossary, warning when translation fails, and crash when changing the hotkey",
+      cl_v14_1: "Smart translation cache — repeated text is translated instantly", cl_v14_2: "Update notification system now working correctly",
       cl_v131_1: "Automatic installation of Windows OCR language packs during setup", cl_v131_2: "OCR install button in app if language pack is missing", cl_v131_3: "Users no longer need to configure OCR manually",
       cl_v13_1: "Premium license system \u2014 activate your key directly in app settings", cl_v13_2: "Integrated checkout via Mercado Pago \u2014 pay with PIX, card or boleto",
       cl_v13_3: "Update notification \u2014 the app alerts you when a new version is available", cl_v13_4: "New visual identity \u2014 redesigned interface with official PolyQuest theme",
@@ -2072,7 +2105,16 @@
       faq_q5: "\u00bfLa app funciona sin internet?", faq_a5: "El OCR funciona offline. La traducci\u00f3n necesita internet.",
       faq_q6: "\u00bfPuedo usarlo en m\u00e1s de un monitor?", faq_a6: "S\u00ed. PolyQuest detecta autom\u00e1ticamente el monitor activo. Tambi\u00e9n puedes fijar uno espec\u00edfico.",
       cl_tag: "Notas de actualizaci\u00f3n", cl_sub: "Sigue la evoluci\u00f3n de PolyQuest.", cl_latest: "M\u00e1s reciente",
-      cl_hotfix: "Hotfix", cl_v14_1: "Cache inteligente de traducciones — textos repetidos se traducen instantáneamente", cl_v14_2: "Sistema de notificación de actualización ahora funciona correctamente",
+      cl_hotfix: "Hotfix",
+      cl_v15_1: "Traducción hasta 10x más rápida — toda la pantalla se traduce en una sola llamada",
+      cl_v15_2: "Nuevo: Modo IA (Premium) — traduce con Claude, Gemini u OpenAI usando tu propia API key. La IA entiende contexto de juegos",
+      cl_v15_3: "Nuevo: Traducción por región — selecciona solo el área que importa (ej: el cuadro de diálogo)",
+      cl_v15_4: "Nuevo: Modo continuo (Premium) — retraducción automática mientras juegas",
+      cl_v15_5: "Caché persistente — las pantallas ya vistas se traducen al instante, incluso sin internet",
+      cl_v15_6: "Detección automática del idioma de origen",
+      cl_v15_7: "El overlay respeta el tamaño del texto original y configuración reorganizada en pestañas",
+      cl_v15_8: "Correcciones: glosario más confiable, aviso cuando la traducción falla y crash al cambiar la tecla de acceso",
+      cl_v14_1: "Cache inteligente de traducciones — textos repetidos se traducen instantáneamente", cl_v14_2: "Sistema de notificación de actualización ahora funciona correctamente",
       cl_v131_1: "Instalación automática de los paquetes de idioma OCR de Windows durante el setup", cl_v131_2: "Botón de instalación del OCR en la app si falta el paquete", cl_v131_3: "Los usuarios ya no necesitan configurar el OCR manualmente",
       cl_v13_1: "Sistema de licencia Premium", cl_v13_2: "Checkout integrado v\u00eda Mercado Pago", cl_v13_3: "Notificaci\u00f3n de actualizaci\u00f3n",
       cl_v13_4: "Nueva identidad visual", cl_v13_5: "\u00cdcono de la app en barras de t\u00edtulo", cl_v13_6: "Configuraci\u00f3n se abre en primera ejecuci\u00f3n",
@@ -2308,6 +2350,7 @@ function modalGoCheckout() {
     if (data.url) {
       window.open(data.url, '_blank');
     } else {
+      if (data.mp_reason) console.error('Checkout falhou (MP ' + (data.mp_status || '?') + '): ' + data.mp_reason);
       alert(data.error || 'Erro ao iniciar pagamento. Tente novamente.');
       btn.textContent = 'Ir para pagamento';
       btn.disabled = false;

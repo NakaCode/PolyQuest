@@ -106,7 +106,7 @@ STRINGS: dict = {
         "glossary_btn_close":       "Fechar",
         # About
         "about_title":        "Sobre o PolyQuest",
-        "about_version":      "Versão 1.4",
+        "about_version":      "Versão 1.5",
         "about_desc":         "Overlay de tradução em tempo real para jogadores.\nCaptura a tela, faz OCR e exibe as traduções diretamente sobre o jogo.",
         "about_developed_by": "Desenvolvido por",
         "about_authors":      "Lucas Silva  ·  Claude",
@@ -265,7 +265,7 @@ STRINGS: dict = {
         "glossary_btn_close":       "Close",
         # About
         "about_title":        "About PolyQuest",
-        "about_version":      "Version 1.4",
+        "about_version":      "Version 1.5",
         "about_desc":         "Real-time translation overlay for gamers.\nCaptures the screen, performs OCR and displays translations directly over the game.",
         "about_developed_by": "Developed by",
         "about_authors":      "Lucas Silva  ·  Claude",
@@ -424,7 +424,7 @@ STRINGS: dict = {
         "glossary_btn_close":       "Cerrar",
         # About
         "about_title":        "Acerca de PolyQuest",
-        "about_version":      "Versión 1.4",
+        "about_version":      "Versión 1.5",
         "about_desc":         "Overlay de traducción en tiempo real para jugadores.\nCaptura la pantalla, realiza OCR y muestra las traducciones directamente sobre el juego.",
         "about_developed_by": "Desarrollado por",
         "about_authors":      "Lucas Silva  ·  Claude",

@@ -12,7 +12,7 @@ from src.license import SUPABASE_URL, SUPABASE_ANON_KEY
 _CHECK_UPDATE_URL = f"{SUPABASE_URL}/functions/v1/check-update"
 
 # Versão atual do app (manter sincronizado com about_dialog)
-CURRENT_VERSION = "1.4.0"
+CURRENT_VERSION = "1.5.0"
 
 
 def _parse_version(v: str) -> tuple:
