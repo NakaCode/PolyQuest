@@ -27,6 +27,11 @@ def check_ocr_language(lang: str = "en") -> None:
     Verifica se o pacote de idioma está instalado no Windows OCR.
     Lança RuntimeError com instruções claras se não estiver.
     """
+    if lang == "auto":
+        # Usa os idiomas do perfil do Windows (sempre há pelo menos um)
+        if OcrEngine.try_create_from_user_profile_languages() is None:
+            raise RuntimeError(t("ocr_missing_lang", tag="auto"))
+        return
     tag = _LANG_MAP.get(lang, lang)
     if OcrEngine.try_create_from_language(Language(tag)) is None:
         raise RuntimeError(t("ocr_missing_lang", tag=tag))
@@ -34,6 +39,13 @@ def check_ocr_language(lang: str = "en") -> None:
 
 def _get_engine(lang: str = "en") -> OcrEngine:
     global _engine_cache
+    if lang == "auto":
+        if "auto" not in _engine_cache:
+            engine = OcrEngine.try_create_from_user_profile_languages()
+            if engine is None:
+                raise RuntimeError(t("ocr_unavailable", tag="auto"))
+            _engine_cache["auto"] = engine
+        return _engine_cache["auto"]
     tag = _LANG_MAP.get(lang, lang)
     if tag not in _engine_cache:
         engine = OcrEngine.try_create_from_language(Language(tag))

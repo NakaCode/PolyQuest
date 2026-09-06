@@ -1,6 +1,7 @@
 mss
 Pillow
 deep-translator
+requests
 keyboard
 PyQt6
 winsdk

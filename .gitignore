@@ -26,6 +26,8 @@ supabase/.temp/
 
 # ── Licença local / específica da máquina ───────────────
 .polyquest_license
+translation_cache.db
+crash.log
 
 # ── Sistema operacional ─────────────────────────────────
 Thumbs.db
