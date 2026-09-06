@@ -2,13 +2,14 @@ import ctypes
 from typing import List, Optional
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QScreen
+from PyQt6.QtGui import QFont, QFontMetrics, QScreen
 from PyQt6.QtWidgets import QApplication, QLabel, QWidget
 
 from src.i18n import t
 from src.ocr import TextBlock
 
 GWL_EXSTYLE = -20
+WDA_EXCLUDEFROMCAPTURE = 0x00000011
 
 THEMES = {
     "dark": {
@@ -95,6 +96,9 @@ class OverlayWindow(QWidget):
         super().__init__()
         self._config = config
         self._screen = screen or QApplication.primaryScreen()
+        # True quando o Windows aceitou excluir a janela da captura de tela
+        # (modo contínuo depende disso para não "ler" o próprio overlay)
+        self.capture_excluded = False
         self._setup_window()
         self._render_blocks(blocks)
         self._render_status_bar(config["hotkey"])
@@ -110,14 +114,40 @@ class OverlayWindow(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
 
         self._dpr = self._screen.devicePixelRatio()
-        self._logical_dpi = self._screen.logicalDotsPerInch()
         self.setGeometry(self._screen.geometry())
 
-    def _font_size_pt(self, line_h_physical: int) -> int:
-        logical_h = line_h_physical / self._dpr
-        pt = int(logical_h * 72 / self._logical_dpi * 0.72)
-        offset = self._config.get("font_size", 0)
-        return max(7, pt + offset)
+    # Padding do QLabel (1px 4px no stylesheet) + borda
+    _LABEL_PAD_W = 10
+    # O balão pode passar até 25% da largura original antes de encolher a
+    # fonte — manter o tamanho visual do texto importa mais que a caixa exata
+    _WIDTH_TOLERANCE = 1.25
+
+    def _fit_font(self, text: str, avail_w: int, avail_h: int) -> tuple:
+        """
+        Fonte (em pixels) do mesmo tamanho do texto original (ajustada à
+        altura da caixa). Só encolhe se a tradução estourar a largura além
+        da tolerância, e nunca abaixo de 80% — legível vale mais que exato.
+        """
+        font = QFont()
+        # 1) maior fonte que respeita a ALTURA original
+        px = max(8, avail_h)
+        while px > 7:
+            font.setPixelSize(px)
+            if QFontMetrics(font).height() <= avail_h:
+                break
+            px -= 1
+        # 2) encolhe (pouco) só se estourar a largura além da tolerância
+        allowed_w = max(int(avail_w * self._WIDTH_TOLERANCE), 8)
+        floor = max(7, int(px * 0.8))
+        while px > floor:
+            font.setPixelSize(px)
+            if QFontMetrics(font).horizontalAdvance(text) <= allowed_w:
+                break
+            px -= 1
+        # ajuste manual do usuário (config "font_size")
+        px = max(7, px + self._config.get("font_size", 0))
+        font.setPixelSize(px)
+        return font, QFontMetrics(font)
 
     def _render_blocks(self, blocks: List[TextBlock]):
         theme = resolve_theme(self._config)
@@ -133,14 +163,19 @@ class OverlayWindow(QWidget):
 
             x = int(block.x / self._dpr)
             y = int(block.y / self._dpr)
+            max_w = max(8, int(block.w / self._dpr))
+            max_h = max(8, int(block.h / self._dpr))
 
-            font_pt = self._font_size_pt(block.line_h)
-            font = QFont()
-            font.setPointSize(font_pt)
+            font, fm = self._fit_font(
+                block.translated, max_w - self._LABEL_PAD_W, max_h - 2
+            )
 
             label = QLabel(block.translated, self)
             label.setFont(font)
             label.setWordWrap(False)
+            label.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            )
             label.setStyleSheet(
                 f"""
                 QLabel {{
@@ -151,7 +186,11 @@ class OverlayWindow(QWidget):
                 }}
                 """
             )
-            label.adjustSize()
+            # A caixa cobre exatamente o texto original; só cresce se nem a
+            # fonte no piso de legibilidade couber
+            w = max(max_w, fm.horizontalAdvance(block.translated) + self._LABEL_PAD_W)
+            h = max(max_h, fm.height() + 2)
+            label.setFixedSize(w, h)
             label.move(x, y)
 
     def _render_status_bar(self, hotkey: str):
@@ -177,6 +216,12 @@ class OverlayWindow(QWidget):
             style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
             ctypes.windll.user32.SetWindowLongW(
                 hwnd, GWL_EXSTYLE, style | WS_EX_TRANSPARENT | WS_EX_LAYERED
+            )
+            # Exclui o overlay da captura de tela (Windows 10 2004+)
+            self.capture_excluded = bool(
+                ctypes.windll.user32.SetWindowDisplayAffinity(
+                    hwnd, WDA_EXCLUDEFROMCAPTURE
+                )
             )
         except Exception as e:
             print(f"[Overlay] click-through: {e}")

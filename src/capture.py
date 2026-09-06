@@ -33,6 +33,22 @@ def list_monitors() -> List[dict]:
         return list(sct.monitors[1:])
 
 
+def resolve_monitor(monitor_index: Optional[int] = None) -> dict:
+    """Resolve o monitor alvo (configurado ou o da janela em foco)."""
+    with mss.mss() as sct:
+        if monitor_index is not None:
+            idx = max(1, min(monitor_index, len(sct.monitors) - 1))
+            return dict(sct.monitors[idx])
+        return dict(_foreground_monitor(sct))
+
+
+def capture_region(bbox: dict) -> Image.Image:
+    """Captura uma área arbitrária (coordenadas físicas absolutas)."""
+    with mss.mss() as sct:
+        screenshot = sct.grab(bbox)
+        return Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
+
+
 def capture_screen(
     monitor_index: Optional[int] = None,
     source_resolution: Optional[list] = None,

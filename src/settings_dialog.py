@@ -9,7 +9,7 @@ from PyQt6.QtGui import QColor, QIntValidator
 from PyQt6.QtWidgets import (
     QApplication, QCheckBox, QColorDialog, QComboBox, QDialog, QFrame,
     QHBoxLayout, QInputDialog, QLabel, QLineEdit, QMessageBox, QPushButton,
-    QSlider, QSpinBox, QVBoxLayout, QWidget,
+    QSlider, QSpinBox, QTabWidget, QVBoxLayout, QWidget,
 )
 
 from src.i18n import t, UI_LANGUAGES
@@ -117,9 +117,30 @@ QSlider::handle:horizontal {
     border-radius: 7px;
 }
 QSlider::handle:horizontal:hover { background: #7a18e0; }
+QTabWidget::pane {
+    border: 1px solid #1e2d48;
+    border-radius: 6px;
+    background: transparent;
+    top: -1px;
+}
+QTabBar::tab {
+    background: #111c30;
+    color: #5a7a9a;
+    padding: 7px 20px;
+    border: 1px solid #1e2d48;
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 2px;
+    font-size: 12px;
+    font-weight: bold;
+}
+QTabBar::tab:selected { background: #1e2d48; color: #00e5ff; }
+QTabBar::tab:!selected:hover { color: #d8f0ff; }
 """
 
 _SOURCE_LANGUAGES = [
+    "auto",
     "en", "pt", "es", "fr", "de", "it",
     "nl", "pl", "ru", "tr", "ja", "zh", "ko", "ar", "vi",
 ]
@@ -135,6 +156,7 @@ _MODES = ["fast", "balanced", "precise"]
 
 _DEFAULT_PROFILE = {
     "hotkey": "*",
+    "region_hotkey": None,
     "source_language": "en",
     "target_language": "pt",
     "translation_mode": "balanced",
@@ -143,6 +165,8 @@ _DEFAULT_PROFILE = {
     "theme": "dark",
     "monitor": None,
     "source_resolution": None,
+    "continuous_mode": False,
+    "continuous_interval": 3,
     "glossary": [],
 }
 
@@ -181,8 +205,8 @@ def _separator() -> QFrame:
 
 
 class SettingsDialog(QDialog):
-    _HEIGHT_BASE = 840
-    _HEIGHT_CUSTOM = 970
+    _HEIGHT_BASE = 560
+    _HEIGHT_CUSTOM = 600
     _license_result = pyqtSignal(dict)
 
     def __init__(self, full_config: dict, config_path: Path, parent=None):
@@ -193,7 +217,9 @@ class SettingsDialog(QDialog):
         self._active_name = full_config.get("activeProfile", "")
         self._config = dict(self._profiles.get(self._active_name, _DEFAULT_PROFILE))
         self._new_hotkey = self._config.get("hotkey", "*")
+        self._new_region_hotkey = self._config.get("region_hotkey")
         self._captured_key: str | None = None
+        self._capture_target = "main"  # qual hotkey está sendo capturada
 
         self._capture_timer = QTimer()
         self._capture_timer.timeout.connect(self._check_capture)
@@ -207,23 +233,31 @@ class SettingsDialog(QDialog):
     def _setup_ui(self):
         self.setWindowTitle(t("settings_title"))
         self.setWindowIcon(_app_icon())
-        self.setFixedSize(420, self._HEIGHT_BASE)
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowCloseButtonHint)
         self.setStyleSheet(_STYLE)
 
-        root = QVBoxLayout(self)
-        root.setSpacing(7)
-        root.setContentsMargins(24, 20, 24, 18)
+        # Abas: todos os campos visíveis sem rolagem, janela compacta
+        self.setFixedWidth(480)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(14, 14, 14, 8)
+        outer.setSpacing(6)
 
-        # ── Título ────────────────────────────────────────────────────
-        title = QLabel(t("settings_heading"))
-        title.setStyleSheet("font-size: 17px; font-weight: bold; color: #00e5ff;")
-        root.addWidget(title)
+        self._tabs = QTabWidget()
+        outer.addWidget(self._tabs, 1)
 
-        sep_top = QFrame()
-        sep_top.setFrameShape(QFrame.Shape.HLine)
-        sep_top.setStyleSheet("color: #1e2d48; margin-bottom: 2px;")
-        root.addWidget(sep_top)
+        def _make_tab(title_key: str) -> QVBoxLayout:
+            page = QWidget()
+            lay = QVBoxLayout(page)
+            lay.setSpacing(7)
+            lay.setContentsMargins(16, 14, 16, 12)
+            self._tabs.addTab(page, t(title_key))
+            return lay
+
+        tab_general = _make_tab("settings_tab_general")
+        tab_capture = _make_tab("settings_tab_translation")
+        tab_appear = _make_tab("settings_tab_appearance")
+
+        root = tab_general
 
         # ── Seção: Licença ────────────────────────────────────────────
         root.addWidget(_section_label(t("license_section")))
@@ -295,7 +329,9 @@ class SettingsDialog(QDialog):
         row_profile.addWidget(self._del_btn)
 
         root.addLayout(row_profile)
-        root.addWidget(_separator())
+
+        # ═══ Aba: Tradução ═══
+        root = tab_capture
 
         # ── Seção: Tecla de atalho ────────────────────────────────────
         root.addWidget(_section_label(t("settings_section_hotkey")))
@@ -309,15 +345,43 @@ class SettingsDialog(QDialog):
         self._display = QLineEdit(self._new_hotkey)
         self._display.setReadOnly(True)
         self._display.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._display.setFixedWidth(80)
-        row_key.addWidget(self._display)
+        self._display.setMinimumWidth(90)
+        row_key.addWidget(self._display, 1)
 
         self._capture_btn = QPushButton(t("settings_hotkey_change"))
-        self._capture_btn.setFixedWidth(75)
-        self._capture_btn.clicked.connect(self._start_capture)
+        self._capture_btn.setFixedWidth(70)
+        self._capture_btn.setStyleSheet("padding: 6px 6px;")
+        self._capture_btn.clicked.connect(lambda: self._start_capture("main"))
         row_key.addWidget(self._capture_btn)
-        row_key.addStretch()
         root.addLayout(row_key)
+
+        # Hotkey da tradução por região
+        row_region = QHBoxLayout()
+        row_region.setSpacing(8)
+        lbl_region = QLabel(t("settings_region_hotkey_label"))
+        lbl_region.setFixedWidth(148)
+        lbl_region.setToolTip(t("settings_region_hotkey_tip"))
+        row_region.addWidget(lbl_region)
+
+        self._region_display = QLineEdit(self._new_region_hotkey or "—")
+        self._region_display.setReadOnly(True)
+        self._region_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._region_display.setMinimumWidth(90)
+        self._region_display.setToolTip(t("settings_region_hotkey_tip"))
+        row_region.addWidget(self._region_display, 1)
+
+        self._region_capture_btn = QPushButton(t("settings_hotkey_change"))
+        self._region_capture_btn.setFixedWidth(70)
+        self._region_capture_btn.setStyleSheet("padding: 6px 6px;")
+        self._region_capture_btn.clicked.connect(lambda: self._start_capture("region"))
+        row_region.addWidget(self._region_capture_btn)
+
+        self._region_clear_btn = QPushButton(t("settings_btn_clear"))
+        self._region_clear_btn.setFixedWidth(64)
+        self._region_clear_btn.setStyleSheet("padding: 6px 6px;")
+        self._region_clear_btn.clicked.connect(self._clear_region_hotkey)
+        row_region.addWidget(self._region_clear_btn)
+        root.addLayout(row_region)
 
         self._info = QLabel(t("settings_hotkey_hint"))
         self._info.setStyleSheet("color: #5a7a9a; font-size: 11px;")
@@ -379,6 +443,29 @@ class SettingsDialog(QDialog):
         self._res_manual_check.toggled.connect(self._res_w.setEnabled)
         self._res_manual_check.toggled.connect(self._res_h.setEnabled)
 
+        # Modo contínuo (PRO)
+        row_cont = QHBoxLayout()
+        row_cont.setSpacing(8)
+
+        self._cont_check = QCheckBox(t("settings_continuous_check"))
+        self._cont_check.setFixedWidth(148)
+        self._cont_check.setToolTip(t("settings_continuous_tip"))
+        row_cont.addWidget(self._cont_check)
+
+        self._cont_interval = QSpinBox()
+        self._cont_interval.setRange(1, 15)
+        self._cont_interval.setSuffix(" s")
+        self._cont_interval.setFixedWidth(68)
+        self._cont_interval.setToolTip(t("settings_continuous_tip"))
+        row_cont.addWidget(self._cont_interval)
+
+        self._cont_pro_tag = _premium_tag()
+        row_cont.addWidget(self._cont_pro_tag)
+        row_cont.addStretch()
+        root.addLayout(row_cont)
+
+        self._cont_check.toggled.connect(self._cont_interval.setEnabled)
+
         root.addWidget(_separator())
 
         # ── Seção: Idiomas ────────────────────────────────────────────
@@ -406,7 +493,8 @@ class SettingsDialog(QDialog):
         row_tgt.addWidget(self._tgt_lang_combo, 1)
         root.addLayout(row_tgt)
 
-        root.addWidget(_separator())
+        # ═══ Aba: Aparência ═══
+        root = tab_appear
 
         # ── Seção: Aparência ──────────────────────────────────────────
         root.addWidget(_section_label(t("settings_section_appearance")))
@@ -531,8 +619,11 @@ class SettingsDialog(QDialog):
         for code in _MODES:
             self._mode_combo.addItem(t(f"mode_{code}"), code)
         row_mode.addWidget(self._mode_combo, 1)
-        root.addLayout(row_mode)
+        # Modo de tradução pertence à aba Tradução (após os idiomas)
+        tab_capture.addLayout(row_mode)
 
+        # ═══ De volta à aba Geral: idioma da interface ═══
+        root = tab_general
         root.addWidget(_separator())
 
         # ── Seção: Interface ──────────────────────────────────────────
@@ -549,9 +640,15 @@ class SettingsDialog(QDialog):
         row_lang.addWidget(self._ui_lang_combo, 1)
         root.addLayout(row_lang)
 
-        root.addStretch()
+        tab_general.addStretch()
+        tab_capture.addStretch()
+        tab_appear.addStretch()
 
-        # ── Botões ────────────────────────────────────────────────────
+        # ── Botões (fixos abaixo das abas) ────────────────────────────
+        bottom = QVBoxLayout()
+        bottom.setContentsMargins(24, 8, 24, 10)
+        bottom.setSpacing(6)
+
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
@@ -565,21 +662,32 @@ class SettingsDialog(QDialog):
         save.clicked.connect(self._save)
         btn_row.addWidget(save)
 
-        root.addLayout(btn_row)
+        bottom.addLayout(btn_row)
 
         # ── Créditos ──────────────────────────────────────────────────
         footer_sep = QFrame()
         footer_sep.setFrameShape(QFrame.Shape.HLine)
         footer_sep.setStyleSheet("color: #111c30; margin-top: 4px;")
-        root.addWidget(footer_sep)
+        bottom.addWidget(footer_sep)
 
         footer = QLabel("PolyQuest  ·  Lucas Silva & Claude")
         footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         footer.setStyleSheet("font-size: 10px; color: #1e2d48;")
-        root.addWidget(footer)
+        bottom.addWidget(footer)
+
+        outer.addLayout(bottom)
 
         # ── Carrega valores do perfil ativo nos widgets ───────────────
         self._load_profile_into_ui(self._config)
+
+    def _apply_height(self, is_custom: bool):
+        """Altura desejada limitada ao espaço disponível na tela (com scroll)."""
+        desired = self._HEIGHT_CUSTOM if is_custom else self._HEIGHT_BASE
+        try:
+            avail = self.screen().availableGeometry().height() - 60
+        except Exception:
+            avail = 800
+        self.resize(self.width(), min(desired, max(480, avail)))
 
         # ── Aplica gates Premium ─────────────────────────────────────
         self._apply_premium_gates()
@@ -665,6 +773,12 @@ class SettingsDialog(QDialog):
         if hasattr(self, '_font_pro_tag'):
             self._font_pro_tag.setVisible(not p)
 
+        # Modo contínuo
+        self._cont_check.setEnabled(p)
+        self._cont_interval.setEnabled(p and self._cont_check.isChecked())
+        if hasattr(self, '_cont_pro_tag'):
+            self._cont_pro_tag.setVisible(not p)
+
         # Tema "Personalizar" — mostra/esconde "🔒" no dropdown
         self._loading = True
         custom_idx = self._theme_combo.findData("custom")
@@ -680,7 +794,7 @@ class SettingsDialog(QDialog):
                     if dark_idx >= 0:
                         self._theme_combo.setCurrentIndex(dark_idx)
                     self._custom_section.setVisible(False)
-                    self.setFixedSize(420, self._HEIGHT_BASE)
+                    self._apply_height(False)
         self._loading = False
 
     # -- Profile management ------------------------------------------------
@@ -751,6 +865,8 @@ class SettingsDialog(QDialog):
         # Hotkey
         self._new_hotkey = cfg.get("hotkey", "*")
         self._display.setText(self._new_hotkey)
+        self._new_region_hotkey = cfg.get("region_hotkey")
+        self._region_display.setText(self._new_region_hotkey or "—")
         self._info.setText(t("settings_hotkey_hint"))
         self._info.setStyleSheet("color: #5a7a9a; font-size: 11px;")
 
@@ -766,6 +882,11 @@ class SettingsDialog(QDialog):
         self._res_h.setText(str(res[1]) if res else "1080")
         self._res_w.setEnabled(res is not None)
         self._res_h.setEnabled(res is not None)
+
+        # Modo contínuo
+        self._cont_check.setChecked(bool(cfg.get("continuous_mode", False)))
+        self._cont_interval.setValue(int(cfg.get("continuous_interval", 3)))
+        self._cont_interval.setEnabled(self._premium and self._cont_check.isChecked())
 
         # Idiomas
         idx = self._src_lang_combo.findData(cfg.get("source_language", "en"))
@@ -792,7 +913,7 @@ class SettingsDialog(QDialog):
 
         is_custom = cfg.get("theme") == "custom"
         self._custom_section.setVisible(is_custom)
-        self.setFixedSize(420, self._HEIGHT_CUSTOM if is_custom else self._HEIGHT_BASE)
+        self._apply_height(is_custom)
 
         # Fonte / modo
         self._font_size_spin.setValue(cfg.get("font_size", 0))
@@ -809,10 +930,13 @@ class SettingsDialog(QDialog):
         self._update_custom_preview()
 
     # ------------------------------------------------------------------
-    def _start_capture(self):
+    def _start_capture(self, target: str = "main"):
         self._captured_key = None
+        self._capture_target = target
         self._capture_btn.setEnabled(False)
-        self._display.setText("...")
+        self._region_capture_btn.setEnabled(False)
+        display = self._display if target == "main" else self._region_display
+        display.setText("...")
         self._info.setText(t("settings_hotkey_waiting"))
         self._info.setStyleSheet("color: #f9e2af; font-size: 11px;")
 
@@ -832,11 +956,20 @@ class SettingsDialog(QDialog):
 
         key = self._captured_key
         self._captured_key = None
-        self._new_hotkey = key
-        self._display.setText(key)
+        if self._capture_target == "region":
+            self._new_region_hotkey = key
+            self._region_display.setText(key)
+        else:
+            self._new_hotkey = key
+            self._display.setText(key)
         self._capture_btn.setEnabled(True)
+        self._region_capture_btn.setEnabled(True)
         self._info.setText(t("settings_hotkey_selected", key=key))
         self._info.setStyleSheet("color: #34d399; font-size: 11px;")
+
+    def _clear_region_hotkey(self):
+        self._new_region_hotkey = None
+        self._region_display.setText("—")
 
     # -- Custom theme helpers ------------------------------------------------
     def _on_theme_changed(self):
@@ -855,7 +988,7 @@ class SettingsDialog(QDialog):
             self._lic_msg.setStyleSheet("font-size: 11px; color: #f9e2af;")
             return
         self._custom_section.setVisible(is_custom)
-        self.setFixedSize(420, self._HEIGHT_CUSTOM if is_custom else self._HEIGHT_BASE)
+        self._apply_height(is_custom)
 
     def _is_valid_hex(self, text: str) -> bool:
         if len(text) != 7 or text[0] != "#":
@@ -927,9 +1060,15 @@ class SettingsDialog(QDialog):
     def _save(self):
         profile = {}
         profile["hotkey"] = self._new_hotkey
+        profile["region_hotkey"] = (
+            self._new_region_hotkey
+            if self._new_region_hotkey != self._new_hotkey else None
+        )
 
         # Captura
         profile["monitor"] = self._monitor_combo.currentData()
+        profile["continuous_mode"] = bool(self._premium and self._cont_check.isChecked())
+        profile["continuous_interval"] = self._cont_interval.value()
         if self._res_manual_check.isChecked():
             try:
                 w = int(self._res_w.text())

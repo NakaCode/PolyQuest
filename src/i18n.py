@@ -26,9 +26,14 @@ STRINGS: dict = {
         "tray_msg_still_loading":   "Ainda carregando o OCR, aguarde...",
         "tray_msg_error":           "Erro ao traduzir. Verifique o console.",
         "tray_msg_settings_saved":  "Configurações salvas.",
+        "tray_msg_translate_failed": "Sem conexão com o tradutor — mostrando texto original.",
+        "tray_action_translate_region": "Traduzir região{hotkey}",
         # Settings
         "settings_title":               "PolyQuest — Configurações",
         "settings_heading":             "Configurações",
+        "settings_tab_general":         "Geral",
+        "settings_tab_translation":     "Tradução",
+        "settings_tab_appearance":      "Aparência",
         "settings_section_hotkey":      "TECLA DE ATALHO",
         "settings_hotkey_label":        "Tecla de atalho:",
         "settings_hotkey_change":       "Alterar",
@@ -40,6 +45,12 @@ STRINGS: dict = {
         "settings_monitor_auto":        "Automático (janela ativa)",
         "settings_monitor_item":        "Monitor {i}  ({w}×{h})",
         "settings_resolution_label":    "Resolução manual:",
+        "settings_region_hotkey_label": "Tecla p/ região:",
+        "settings_region_hotkey_tip":   "Arraste um retângulo na tela para traduzir só aquela área.",
+        "settings_btn_clear":           "Limpar",
+        "settings_continuous_check":    "Retraduzir a cada",
+        "settings_continuous_tip":      "Com o overlay aberto, captura e retraduz automaticamente no intervalo escolhido.",
+        "region_selector_hint":         "Arraste para selecionar a área  ·  ESC cancela",
         "settings_section_languages":   "IDIOMAS",
         "settings_source_lang":         "Idioma de origem:",
         "settings_target_lang":         "Idioma de destino:",
@@ -142,6 +153,7 @@ STRINGS: dict = {
         "ocr_install_success": "Pacote OCR instalado com sucesso! O PolyQuest vai continuar.",
         "ocr_install_failed": "Não foi possível instalar o pacote OCR. Tente instalar manualmente pelas Configurações do Windows.",
         # Nomes de idiomas (dropdowns de origem/destino)
+        "lang_auto": "Detectar automaticamente",
         "lang_en": "Inglês",     "lang_pt": "Português", "lang_es": "Espanhol",
         "lang_fr": "Francês",    "lang_de": "Alemão",    "lang_it": "Italiano",
         "lang_nl": "Holandês",   "lang_pl": "Polonês",   "lang_ru": "Russo",
@@ -167,9 +179,14 @@ STRINGS: dict = {
         "tray_msg_still_loading":   "OCR still loading, please wait...",
         "tray_msg_error":           "Translation error. Check the console.",
         "tray_msg_settings_saved":  "Settings saved.",
+        "tray_msg_translate_failed": "Could not reach the translator — showing original text.",
+        "tray_action_translate_region": "Translate region{hotkey}",
         # Settings
         "settings_title":               "PolyQuest — Settings",
         "settings_heading":             "Settings",
+        "settings_tab_general":         "General",
+        "settings_tab_translation":     "Translation",
+        "settings_tab_appearance":      "Appearance",
         "settings_section_hotkey":      "HOTKEY",
         "settings_hotkey_label":        "Hotkey:",
         "settings_hotkey_change":       "Change",
@@ -181,6 +198,12 @@ STRINGS: dict = {
         "settings_monitor_auto":        "Automatic (active window)",
         "settings_monitor_item":        "Monitor {i}  ({w}×{h})",
         "settings_resolution_label":    "Manual resolution:",
+        "settings_region_hotkey_label": "Region hotkey:",
+        "settings_region_hotkey_tip":   "Drag a rectangle on screen to translate only that area.",
+        "settings_btn_clear":           "Clear",
+        "settings_continuous_check":    "Re-translate every",
+        "settings_continuous_tip":      "While the overlay is open, captures and re-translates automatically at the chosen interval.",
+        "region_selector_hint":         "Drag to select the area  ·  ESC to cancel",
         "settings_section_languages":   "LANGUAGES",
         "settings_source_lang":         "Source language:",
         "settings_target_lang":         "Target language:",
@@ -283,6 +306,7 @@ STRINGS: dict = {
         "ocr_install_success": "OCR pack installed successfully! PolyQuest will continue.",
         "ocr_install_failed": "Could not install the OCR pack. Please try installing manually via Windows Settings.",
         # Language names
+        "lang_auto": "Auto-detect",
         "lang_en": "English",    "lang_pt": "Portuguese", "lang_es": "Spanish",
         "lang_fr": "French",     "lang_de": "German",     "lang_it": "Italian",
         "lang_nl": "Dutch",      "lang_pl": "Polish",     "lang_ru": "Russian",
@@ -308,9 +332,14 @@ STRINGS: dict = {
         "tray_msg_still_loading":   "El OCR aún está cargando, espera...",
         "tray_msg_error":           "Error al traducir. Revisa la consola.",
         "tray_msg_settings_saved":  "Configuración guardada.",
+        "tray_msg_translate_failed": "Sin conexión con el traductor — mostrando texto original.",
+        "tray_action_translate_region": "Traducir región{hotkey}",
         # Settings
         "settings_title":               "PolyQuest — Configuración",
         "settings_heading":             "Configuración",
+        "settings_tab_general":         "General",
+        "settings_tab_translation":     "Traducción",
+        "settings_tab_appearance":      "Apariencia",
         "settings_section_hotkey":      "TECLA DE ACCESO",
         "settings_hotkey_label":        "Tecla de acceso:",
         "settings_hotkey_change":       "Cambiar",
@@ -322,6 +351,12 @@ STRINGS: dict = {
         "settings_monitor_auto":        "Automático (ventana activa)",
         "settings_monitor_item":        "Monitor {i}  ({w}×{h})",
         "settings_resolution_label":    "Resolución manual:",
+        "settings_region_hotkey_label": "Tecla de región:",
+        "settings_region_hotkey_tip":   "Arrastra un rectángulo en la pantalla para traducir solo esa área.",
+        "settings_btn_clear":           "Borrar",
+        "settings_continuous_check":    "Retraducir cada",
+        "settings_continuous_tip":      "Con el overlay abierto, captura y retraduce automáticamente en el intervalo elegido.",
+        "region_selector_hint":         "Arrastra para seleccionar el área  ·  ESC para cancelar",
         "settings_section_languages":   "IDIOMAS",
         "settings_source_lang":         "Idioma de origen:",
         "settings_target_lang":         "Idioma de destino:",
@@ -424,6 +459,7 @@ STRINGS: dict = {
         "ocr_install_success": "¡Paquete OCR instalado con éxito! PolyQuest continuará.",
         "ocr_install_failed": "No se pudo instalar el paquete OCR. Intente instalarlo manualmente desde la Configuración de Windows.",
         # Language names
+        "lang_auto": "Detección automática",
         "lang_en": "Inglés",     "lang_pt": "Portugués", "lang_es": "Español",
         "lang_fr": "Francés",    "lang_de": "Alemán",    "lang_it": "Italiano",
         "lang_nl": "Holandés",   "lang_pl": "Polaco",    "lang_ru": "Ruso",
@@ -451,11 +487,12 @@ def setup(lang: str) -> None:
         _lang = lang
 
 
-def t(key: str, **kwargs) -> str:
+def t(key: str, /, **kwargs) -> str:
     """
     Retorna a string traduzida para o idioma ativo.
     Fallback: inglês → a própria chave.
     Suporta formatação: t("tray_msg_ready", hotkey="*")
+    O parâmetro é posicional-only para permitir placeholders chamados 'key'.
     """
     s = STRINGS.get(_lang, {}).get(key) or STRINGS.get("en", {}).get(key, key)
     return s.format(**kwargs) if kwargs else s
